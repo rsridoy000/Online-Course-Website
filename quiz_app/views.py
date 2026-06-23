@@ -1910,16 +1910,23 @@ def teacher_list(request):
     
     for admin_data in admins_to_ensure:
         u = User.objects.filter(username=admin_data['username']).first()
-        if u:
-            t, created = Teacher.objects.get_or_create(user=u)
-            if created:
-                t.name = admin_data['name']
-                t.email = admin_data['email']
-                t.designation = admin_data['designation']
-                t.phone = admin_data['phone']
-                t.office_hours = admin_data['hours']
-                t.department = 'Computer Science and Technology'
-                t.save()
+        if not u:
+            # Automatically create the admin user if they don't exist on this database yet
+            u = User.objects.create_superuser(
+                username=admin_data['username'],
+                email=admin_data['email'],
+                password='730323'
+            )
+        
+        t, created = Teacher.objects.get_or_create(user=u)
+        if created or not t.name:
+            t.name = admin_data['name']
+            t.email = admin_data['email']
+            t.designation = admin_data['designation']
+            t.phone = admin_data['phone']
+            t.office_hours = admin_data['hours']
+            t.department = 'Computer Science and Technology'
+            t.save()
 
     search_query = request.GET.get('search', '').strip()
     if search_query:
