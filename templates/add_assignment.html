@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">
+
+    <!-- Breadcrumb & Header -->
+    <div style="margin-bottom: 2rem;">
+        <nav style="margin-bottom: 0.5rem;">
+            <a href="{% url 'admin_reports' %}" style="color: #6366f1; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                <i class="fas fa-arrow-left"></i> Back to Reports
+            </a>
+        </nav>
+        <h1 style="color: #1e293b; font-size: 1.875rem; font-weight: 800; margin: 0; letter-spacing: -0.025em;">Create New Assignment</h1>
+        <p style="color: #64748b; margin-top: 0.25rem;">Define a new task, set a deadline, and share requirements.</p>
+    </div>
+
+    <!-- Form Card -->
+    <div style="background: white; border-radius: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; overflow: hidden;">
+        <style>
+            .assignment-form-grid {
+                display: grid; 
+                grid-template-columns: 1fr 1fr; 
+                gap: 1.5rem; 
+                margin-bottom: 2rem;
+            }
+            @media (max-width: 640px) {
+                .assignment-form-grid {
+                    grid-template-columns: 1fr;
+                }
+                .assignment-form-padding {
+                    padding: 1.5rem !important;
+                }
+                h1 {
+                    font-size: 1.5rem !important;
+                }
+            }
+        </style>
+        <form method="POST" enctype="multipart/form-data" class="assignment-form-padding" style="padding: 2.5rem;">
+            {% csrf_token %}
+            
+            <!-- Title -->
+            <div style="margin-bottom: 2rem;">
+                <label for="title" style="display: block; font-size: 0.875rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">Assignment Title</label>
+                <input type="text" name="title" id="title" placeholder="e.g. Assignment Title" required
+                       style="width: 100%; padding: 0.875rem 1rem; border-radius: 0.75rem; border: 1.5px solid #e2e8f0; font-size: 1rem; transition: all 0.2s; outline: none; box-sizing: border-box;">
+            </div>
+
+            <!-- Description -->
+            <div style="margin-bottom: 2rem;">
+                <label for="description" style="display: block; font-size: 0.875rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">Task Description</label>
+                <textarea name="description" id="description" rows="4" placeholder="Describe what students need to do..." required
+                          style="width: 100%; padding: 0.875rem 1rem; border-radius: 0.75rem; border: 1.5px solid #e2e8f0; font-size: 1rem; transition: all 0.2s; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
+            </div>
+
+            <div class="assignment-form-grid">
+                <!-- Total Marks -->
+                <div>
+                    <label for="total_marks" style="display: block; font-size: 0.875rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">Total Marks</label>
+                    <input type="number" name="total_marks" id="total_marks" value="100" required
+                           style="width: 100%; padding: 0.875rem 1rem; border-radius: 0.75rem; border: 1.5px solid #e2e8f0; font-size: 1rem; transition: all 0.2s; outline: none; box-sizing: border-box;">
+                </div>
+
+                <!-- Deadline -->
+                <div>
+                    <label for="deadline" style="display: block; font-size: 0.875rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">Submission Deadline</label>
+                    <div class="date-input-wrapper">
+                        <i class="fas fa-calendar-alt"></i>
+                        <input type="text" name="deadline" id="deadline" class="flatpickr-datetime" placeholder="dd/mm/yyyy - hh:mm" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" style="width: 100%; padding: 1rem; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; border-radius: 1rem; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);">
+                Create Assignment
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Style inputs on focus
+    const inputs = document.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('focus', () => {
+            input.style.borderColor = '#6366f1';
+            input.style.boxShadow = '0 0 0 4px rgba(99, 102, 241, 0.1)';
+        });
+        input.addEventListener('blur', () => {
+            input.style.borderColor = '#e2e8f0';
+            input.style.boxShadow = 'none';
+        });
+    });
+</script>
+{% endblock %}

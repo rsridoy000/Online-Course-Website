@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block title %}Login - Liquid_Triple_R{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+    <!-- Animated background bubbles -->
+    <div class="circles">
+        <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
+    </div>
+
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="icon-blob">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <h2>Student Login</h2>
+            <p>Enter your credentials to continue your journey</p>
+        </div>
+
+        {% if error %}
+        <div class="alert-error">
+            <i class="fas fa-exclamation-circle"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> {{ success }}
+        </div>
+        {% endif %}
+
+        <form method="POST" class="auth-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" placeholder="Enter your email" required autofocus>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" placeholder="Enter your password" required>
+                </div>
+                <div style="text-align: right; margin-top: 0.5rem;">
+                    <a href="{% url 'student_password_reset' %}" style="color: #3b82f6; font-size: 0.85rem; font-weight: 600; text-decoration: none;">Forgot Password?</a>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary-glow">
+                <span>Login Securely</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Don't have an account? <a href="{% url 'student_register' %}">Register now</a>
+        </div>
+        
+        <div class="divider-text"><span>OR</span></div>
+
+        <div class="admin-access-section">
+            <p>Accessing the system as staff?</p>
+            <a href="{% url 'admin_login' %}" class="admin-portal-btn">
+                <i class="fas fa-shield-halved"></i>
+                Admin Portal
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-glow: #3b82f6;
+        --secondary-glow: #8b5cf6;
+        --glass-bg: rgba(255, 255, 255, 0.75);
+        --glass-border: rgba(255, 255, 255, 0.5);
+    }
+
+    .auth-wrapper {
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(-45deg, #f1f5f9, #e2e8f0, #dbeafe, #f1f5f9);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+        overflow-y: auto;
+        padding: 2rem 0;
+    }
+
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* Background Circles Animation */
+    .circles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -1;
+    }
+    .circles li {
+        position: absolute;
+        display: block;
+        list-style: none;
+        width: 20px;
+        height: 20px;
+        background: rgba(59, 130, 246, 0.1);
+        animation: animate 25s linear infinite;
+        bottom: -150px;
+        border-radius: 50%;
+    }
+    /* Add various sizes and timings for bubbles */
+    .circles li:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+    .circles li:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+    .circles li:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+    .circles li:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
+    .circles li:nth-child(5) { left: 65%; width: 20px; height: 20px; animation-delay: 0s; }
+    .circles li:nth-child(6) { left: 75%; width: 110px; height: 110px; animation-delay: 3s; }
+
+    @keyframes animate {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0; }
+        100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; }
+    }
+
+    .auth-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 2rem;
+        padding: 3rem;
+        width: 100%;
+        max-width: 440px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        animation: cardEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        margin: auto;
+    }
+
+    @keyframes cardEnter {
+        from { opacity: 0; transform: scale(0.9) translateY(30px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .auth-header { text-align: center; margin-bottom: 2.5rem; }
+    
+    .icon-blob {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border-radius: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        color: white;
+        font-size: 1.5rem;
+        box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .auth-header h2 { font-size: 1.75rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; letter-spacing: -0.5px; }
+    .auth-header p { color: #64748b; font-size: 0.95rem; line-height: 1.5; }
+
+    .alert-error {
+        background: #fee2e2;
+        border-left: 4px solid #ef4444;
+        color: #b91c1c;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .alert-success {
+        background: #dcfce7;
+        border-left: 4px solid #22c55e;
+        color: #15803d;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; font-size: 0.875rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem; }
+
+    .input-wrapper { position: relative; }
+    .input-wrapper i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; transition: color 0.3s; }
+    
+    .input-wrapper input {
+        width: 100%;
+        padding: 0.875rem 1rem 0.875rem 2.75rem;
+        background: white;
+        border: 2px solid #f1f5f9;
+        border-radius: 1rem;
+        font-size: 1rem;
+        font-family: inherit;
+        transition: all 0.3s;
+        box-sizing: border-box;
+    }
+
+    .input-wrapper input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+    .input-wrapper input:focus + i { color: #3b82f6; }
+
+    .btn-primary-glow {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #1e293b, #334155);
+        color: white;
+        border: none;
+        border-radius: 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        transition: all 0.3s;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        background: #0f172a;
+    }
+
+    .auth-footer { text-align: center; margin-top: 2rem; color: #64748b; font-size: 0.95rem; }
+    .auth-footer a { color: #3b82f6; font-weight: 700; text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .auth-footer a:hover { border-bottom-color: #3b82f6; }
+
+    .divider-text {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        margin: 2rem 0;
+        color: #cbd5e1;
+        font-size: 0.75rem;
+        font-weight: 800;
+    }
+    .divider-text::before, .divider-text::after { content: ''; flex: 1; border-bottom: 1px solid #e2e8f0; }
+    .divider-text span { padding: 0 1rem; }
+
+    .admin-access-section { text-align: center; }
+    .admin-access-section p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem; }
+    
+    .admin-portal-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: white;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 700;
+        transition: all 0.2s;
+    }
+
+    .admin-portal-btn:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 480px) {
+        .auth-card { padding: 2rem 1.5rem; border-radius: 1.5rem; }
+    }
+</style>
+{% endblock %}

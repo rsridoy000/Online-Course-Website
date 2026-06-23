@@ -1,0 +1,77 @@
+31: def calculate_student_score(student):
+65: def get_all_student_scores():
+125: def log_activity(user, action, description=""):
+135: def get_client_ip(request):
+142: def send_email_async(subject, message, recipient_list, html_message=None):
+158: def get_user_agent(request):
+162: def get_user_ranking_stats(user):
+203: def student_register(request):
+264: def verify_otp(request):
+340: def resend_otp(request):
+371: def student_password_reset(request):
+405: def student_password_reset_verify(request):
+431: def student_password_reset_confirm(request):
+460: def resend_password_reset_otp(request):
+480: def student_login(request):
+504: def student_logout(request):
+509: def student_profile(request):
+585: def admin_login(request):
+627: def admin_dashboard(request):
+682: def admin_cleanup_duplicates(request):
+723: def quiz_detail(request, quiz_id):
+736: def create_quiz(request):
+756: def edit_quiz(request, quiz_id):
+776: def delete_quiz(request, quiz_id):
+784: def toggle_quiz_publish(request, quiz_id):
+802: def add_question(request, quiz_id):
+823: def edit_question(request, question_id):
+839: def delete_question(request, question_id):
+849: def view_attempt(request, attempt_id):
+879: def admin_logout(request):
+885: def admin_profile(request):
+967: def remove_profile_image(request):
+978: def remove_admin_profile_image(request):
+992: def home(request):
+1024: def quiz_sort_key(item):
+1041: def start_quiz(request, quiz_id):
+1092: def take_quiz(request, quiz_id):
+1130: def save_answer(request):
+1147: def submit_quiz(request):
+1178: def log_warning(request):
+1225: def fix_all_penalties(request):
+1288: def expired_quiz_answers(request, quiz_id):
+1303: def quiz_result(request, attempt_id):
+1345: def leaderboard(request):
+1437: def adjust_score(request, attempt_id):
+1473: def student_dashboard(request):
+1573: def assignment_list(request):
+1603: def edit_assignment(request, assignment_id):
+1632: def delete_assignment(request, assignment_id):
+1645: def assignment_detail(request, assignment_id):
+1652: def submit_assignment(request, assignment_id):
+1692: def add_assignment(request):
+1721: def notice_list(request):
+1762: def mark_notices_read(request):
+1776: def resource_list(request):
+1792: def add_resource(request):
+1857: def delete_resource(request, resource_id):
+1874: def delete_session(request):
+1890: def teacher_list(request):
+1928: def admin_submissions(request):
+1951: def grade_submission(request, submission_id):
+1969: def publish_assignment_result(request, submission_id):
+1991: def cancel_grade(request, submission_id):
+2018: def publish_all_submissions(request):
+2055: def unpublish_all_submissions(request):
+2089: def add_notice(request):
+2103: def delete_notice(request, notice_id):
+2112: def delete_all_notices(request):
+2121: def admin_student_progress(request, user_id):
+2182: def admin_adjust_bonus_marks(request, user_id):
+2229: def student_list(request):
+2258: def delete_student(request, user_id):
+2272: def admin_reports(request):
+2310: def attendance_dashboard(request):
+2335: def mark_attendance(request):
+2358: def attendance_report(request):
+2419: def view_resource_file(request, resource_id):

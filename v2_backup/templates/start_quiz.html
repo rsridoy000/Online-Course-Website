@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Start {{ quiz.title }} - Liquid_Triple_R{% endblock %}
+{% block content %}
+<div class="sq-container">
+    <div class="sq-card">
+        <div class="sq-header">
+            <h1>{{ quiz.title }}</h1>
+            {% if quiz.description %}<p>{{ quiz.description }}</p>{% endif %}
+        </div>
+
+        <!-- Student info banner — no name input needed -->
+        <div class="student-banner">
+            {% if request.user.student_profile.profile_image %}
+                <img src="{{ request.user.student_profile.profile_image.url }}" class="banner-avatar-img" alt="profile">
+            {% else %}
+                <div class="banner-avatar-letter">{{ request.user.first_name|first|upper }}</div>
+            {% endif %}
+            <div>
+                <div class="banner-name">{{ request.user.get_full_name|default:request.user.email }}</div>
+                <div class="banner-email">{{ request.user.email }}</div>
+            </div>
+        </div>
+
+        <div class="sq-info">
+            <h3>📋 Quiz Information</h3>
+            <ul>
+                <li><strong>Total Questions:</strong> {{ quiz.questions.count }}</li>
+                <li><strong>Time Limit:</strong> {{ quiz.time_limit }} minutes</li>
+                <li><strong>Question Format:</strong> Multiple Choice (4 options)</li>
+                <li><strong>Random Order:</strong> Questions will appear in random order</li>
+            </ul>
+        </div>
+
+        <div class="sq-rules">
+            <h3>⚠️ Important Rules</h3>
+            <ul>
+                <li>Once started, complete the quiz without leaving the page</li>
+                <li>Switching tabs or refreshing will be recorded</li>
+                <li>You can change your answers before final submission</li>
+                <li>Quiz will auto-submit when time expires</li>
+                <li>Cannot resume once submitted</li>
+            </ul>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-start">🚀 Start Quiz</button>
+        </form>
+        <a href="/" class="btn-cancel">Cancel</a>
+    </div>
+</div>
+
+<style>
+.sq-container {
+    max-width: 560px;
+    margin: 30px auto;
+    padding: 0 16px;
+}
+.sq-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 6px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+.sq-header {
+    background: linear-gradient(135deg, #1e3a5f, #2563eb);
+    color: white;
+    padding: 28px 28px 20px;
+    text-align: center;
+}
+.sq-header h1 { font-size: 26px; margin-bottom: 8px; }
+.sq-header p { opacity: 0.85; font-size: 14px; }
+
+.student-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #eff6ff;
+    border-left: 4px solid #2563eb;
+    padding: 14px 24px;
+    margin: 0;
+}
+.banner-avatar-img {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #2563eb;
+    flex-shrink: 0;
+}
+.banner-avatar-letter {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+.banner-name { font-weight: 700; color: #1e3a5f; font-size: 16px; }
+.banner-email { font-size: 13px; color: #64748b; }
+
+.sq-info, .sq-rules {
+    padding: 20px 28px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.sq-info h3, .sq-rules h3 {
+    font-size: 16px;
+    color: #1e3a5f;
+    margin-bottom: 10px;
+}
+.sq-info ul, .sq-rules ul {
+    padding-left: 20px;
+    color: #475569;
+    font-size: 14px;
+    line-height: 2;
+}
+.btn-start {
+    display: block;
+    width: calc(100% - 56px);
+    margin: 24px 28px 10px;
+    padding: 14px;
+    background: #2563eb;
+    color: white;
+    font-size: 17px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: center;
+}
+.btn-start:hover { background: #1d4ed8; }
+.btn-cancel {
+    display: block;
+    text-align: center;
+    margin: 0 28px 24px;
+    padding: 10px;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+}
+.btn-cancel:hover { border-color: #94a3b8; }
+
+@media (max-width: 480px) {
+    .sq-header { padding: 20px 16px; }
+    .sq-info, .sq-rules { padding: 16px; }
+    .btn-start { width: calc(100% - 32px); margin: 20px 16px 8px; }
+    .btn-cancel { margin: 0 16px 20px; }
+}
+</style>
+{% endblock %}

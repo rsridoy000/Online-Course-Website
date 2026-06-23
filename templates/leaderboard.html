@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Leaderboard | {{ selected_quiz.title|default:"Overall Rankings" }}{% endblock %}
+
+{% block content %}
+
+<div style="max-width:900px;margin:0 auto;padding-bottom:5rem;">
+
+
+    <!-- ── Header & Title ── -->
+    <div style="text-align:center;margin-bottom:3rem;position:relative;">
+        <div style="display:inline-flex;align-items:center;justify-content:center;
+                    width:64px;height:64px;background:white;border-radius:1.2rem;
+                    box-shadow:0 10px 25px rgba(6,182,212,0.15);margin-bottom:1rem;">
+            <i class="fas fa-trophy" style="font-size:1.8rem;color:#06b6d4;"></i>
+        </div>
+        <h1 style="font-size:2.2rem;font-weight:900;color:#1e293b;letter-spacing:-1px;margin:0;">
+            Leaderboard
+        </h1>
+        <p style="color:#94a3b8;font-size:0.95rem;margin-top:0.4rem;font-weight:600;" id="leaderboardSubtext">
+            {% if selected_quiz %}
+                Top performers for <span style="color:#0891b2;" id="quizTitleSpan">{{ selected_quiz.title }}</span>
+            {% else %}
+                Academic performance ranking across all activities
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- ── Filter Bar ── -->
+    <div class="filter-bar" style="background:rgba(255,255,255,0.8);backdrop-filter:blur(10px);
+                border-radius:1.25rem;padding:0.75rem;margin-bottom:3rem;
+                box-shadow:0 4px 20px rgba(0,0,0,0.03);border:1px solid rgba(255,255,255,0.5);
+                display:flex;align-items:center;gap:0.75rem;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <a href="{% url 'leaderboard' %}" 
+           class="filter-link {% if not selected_quiz %}active-filter{% endif %}"
+           data-quiz-id=""
+           style="padding:0.6rem 1.25rem;border-radius:0.85rem;font-size:0.85rem;font-weight:700;
+                  text-decoration:none;white-space:nowrap;transition:all .2s;
+                  {% if not selected_quiz %}background:#06b6d4;color:white;box-shadow:0 4px 12px rgba(6,182,212,0.25);
+                  {% else %}background:transparent;color:#64748b;{% endif %}"
+           onmouseover="if(!this.classList.contains('active-filter')) this.style.background='#f1f5f9'"
+           onmouseout="if(!this.classList.contains('active-filter')) this.style.background='transparent'">
+            Global Rank
+        </a>
+        <div style="width:1px;height:20px;background:#e2e8f0;"></div>
+        {% for quiz in quizzes %}
+        <a href="{% url 'leaderboard' %}?quiz_id={{ quiz.id }}" 
+           class="filter-link {% if selected_quiz.id == quiz.id %}active-filter{% endif %}"
+           data-quiz-id="{{ quiz.id }}"
+           style="padding:0.6rem 1.25rem;border-radius:0.85rem;font-size:0.85rem;font-weight:700;
+                  text-decoration:none;white-space:nowrap;transition:all .2s;
+                  {% if selected_quiz.id == quiz.id %}background:#06b6d4;color:white;box-shadow:0 4px 12px rgba(6,182,212,0.25);
+                  {% else %}background:transparent;color:#64748b;{% endif %}"
+           onmouseover="if(!this.classList.contains('active-filter')) this.style.background='#f1f5f9'"
+           onmouseout="if(!this.classList.contains('active-filter')) this.style.background='transparent'">
+            {{ quiz.title }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <div id="leaderboardContent">
+        <div id="podiumSection">
+            {% include 'leaderboard_podium_partial.html' %}
+        </div>
+
+        <div id="tableSection">
+            {% include 'leaderboard_table_partial.html' %}
+        </div>
+    </div>
+
+</div>
+
+<style>
+/* Animations */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.rank-row:hover {
+    background: #f8fafc !important;
+}
+
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.filter-bar::-webkit-scrollbar { display: none; }
+
+@media (max-width: 640px) {
+    .truncate { max-width: 120px; }
+    .podium-container { 
+        gap: 0.4rem !important; 
+        padding-top: 1rem !important;
+        margin-bottom: 2rem !important;
+    }
+    .podium-card-2, .podium-card-3 { width: 100px !important; }
+    .podium-card-1 { width: 120px !important; }
+    
+    .podium-avatar-small { width: 60px !important; height: 60px !important; }
+    .podium-avatar-large { width: 85px !important; height: 85px !important; }
+    
+    .podium-score-small { padding: 0.6rem 0.3rem !important; }
+    .podium-score-large { padding: 0.8rem 0.4rem !important; }
+    .podium-score-val { font-size: 1.1rem !important; }
+    .podium-score-val-large { font-size: 1.4rem !important; }
+}
+
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterLinks = document.querySelectorAll('.filter-link');
+        const podiumSection = document.getElementById('podiumSection');
+        const tableSection = document.getElementById('tableSection');
+        const leaderboardSubtext = document.getElementById('leaderboardSubtext');
+        const filterBar = document.querySelector('.filter-bar');
+
+        // Center active filter initially
+        function centerActiveFilter() {
+            const activeFilter = filterBar.querySelector('.active-filter');
+            if (activeFilter) {
+                const scrollPos = activeFilter.offsetLeft - (filterBar.offsetWidth / 2) + (activeFilter.offsetWidth / 2);
+                filterBar.scrollTo({ left: scrollPos, behavior: 'smooth' });
+            }
+        }
+        centerActiveFilter();
+
+        filterLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // UI feedback
+                filterLinks.forEach(l => {
+                    l.classList.remove('active-filter');
+                    l.style.background = 'transparent';
+                    l.style.color = '#64748b';
+                    l.style.boxShadow = 'none';
+                });
+                this.classList.add('active-filter');
+                this.style.background = '#06b6d4';
+                this.style.color = 'white';
+                this.style.boxShadow = '0 4px 12px rgba(6,182,212,0.25)';
+                
+                centerActiveFilter();
+
+                // Fetch data
+                const url = this.getAttribute('href');
+                const quizId = this.getAttribute('data-quiz-id');
+                
+                // Optional: Fade out content
+                document.getElementById('leaderboardContent').style.opacity = '0.5';
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        podiumSection.innerHTML = data.html_podium;
+                        tableSection.innerHTML = data.html_table;
+                        
+                        // Update subtext
+                        if (quizId) {
+                            leaderboardSubtext.innerHTML = `Top performers for <span style="color:#0891b2;">${data.quiz_title}</span>`;
+                        } else {
+                            leaderboardSubtext.innerHTML = 'Academic performance ranking across all activities';
+                        }
+                        
+                        // Update URL without reloading
+                        window.history.pushState({}, '', url);
+                    }
+                })
+                .catch(err => console.error('Error fetching leaderboard:', err))
+                .finally(() => {
+                    document.getElementById('leaderboardContent').style.opacity = '1';
+                });
+            });
+        });
+
+        // Scroll to user's rank in the list (one-time on initial load)
+        const myRank = document.getElementById('my-rank');
+        if (myRank) {
+            setTimeout(function() {
+                myRank.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 800);
+        }
+    });
+</script>
+{% endblock %}

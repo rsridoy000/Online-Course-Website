@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #3b82f6;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 24pt;
+            text-transform: uppercase;
+        }
+        .header p {
+            margin: 5px 0;
+            color: #64748b;
+            font-size: 11pt;
+        }
+        .report-info {
+            margin-bottom: 25px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .report-info table {
+            width: 100%;
+        }
+        .report-info td {
+            font-size: 10pt;
+        }
+        .report-title {
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        table.results {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table.results th {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-weight: bold;
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 10pt;
+        }
+        table.results td {
+            padding: 10px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 10pt;
+        }
+        .rank-column { width: 50px; text-align: center; }
+        .name-column { font-weight: bold; }
+        .marks-badge {
+            background-color: #eff6ff;
+            color: #2563eb;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 8pt;
+            color: #94a3b8;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Liquid_Triple_R</h1>
+        <p>Submission Report & Performance Summary</p>
+    </div>
+
+    <div class="report-info">
+        <table>
+            <tr>
+                <td width="50%">
+                    <span class="report-title">Activity:</span> {{ activity_name }}<br>
+                    <span class="report-title">Type:</span> {{ activity_type }}
+                </td>
+                <td width="50%" align="right">
+                    <span class="report-title">Total Submissions:</span> {{ data|length }}<br>
+                    <span class="report-title">Report Code:</span> #{{ activity_type|slice:":1" }}{{ activity_id }}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="results">
+        <thead>
+            <tr>
+                <th class="rank-column">SL</th>
+                <th class="name-column">Student Name</th>
+                <th>Student ID</th>
+                <th align="right">Obtained Marks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+            <tr>
+                <td class="rank-column">{{ item.serial }}</td>
+                <td class="name-column">{{ item.name }}</td>
+                <td>{{ item.student_id }}</td>
+                <td align="right">
+                    <span class="marks-badge">{{ item.marks }}</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>This is a computer-generated report. No signature is required.</p>
+        <p>© 2026 Liquid_Triple_R Academy | All Rights Reserved</p>
+    </div>
+</body>
+</html>

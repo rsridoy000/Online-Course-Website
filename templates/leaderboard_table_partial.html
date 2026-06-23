@@ -1,0 +1,59 @@
+<div style="background:white;border-radius:1.75rem;box-shadow:0 1px 40px rgba(0,0,0,0.03);
+            border:1px solid #f1f5f9;overflow:hidden;">
+    
+    <div style="padding:1.4rem 1.8rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:1.5rem;">
+        <div style="width:40px;text-align:center;font-weight:800;color:#94a3b8;font-size:0.75rem;text-transform:uppercase;">Rank</div>
+        <div style="flex:1;font-weight:800;color:#94a3b8;font-size:0.75rem;text-transform:uppercase;">Student</div>
+        <div style="text-align:right;font-weight:800;color:#94a3b8;font-size:0.75rem;text-transform:uppercase;">Score</div>
+    </div>
+
+    {% if remaining_students %}
+        {% for item in remaining_students %}
+            <div id="{% if item.student.id == user.id %}my-rank{% endif %}"
+                 style="padding:1.1rem 1.8rem;display:flex;align-items:center;gap:1.5rem;
+                        {% if not forloop.last %}border-bottom:1px solid #f8fafc;{% endif %}
+                        {% if item.student.id == user.id %}background:linear-gradient(90deg,rgba(6,182,212,0.07),transparent);border-left:4px solid #06b6d4;{% endif %}
+                        transition:all .2s;"
+                 class="rank-row">
+                
+                <!-- Rank No -->
+                <div style="width:40px;text-align:center;">
+                    <span style="font-weight:800;color:#f59e0b;font-size:0.95rem;">#{{ item.rank }}</span>
+                </div>
+
+                <!-- Profile Image -->
+                <div style="flex-shrink:0;">
+                    {% if item.profile.profile_image %}
+                        <img src="{{ item.profile.profile_image.url }}" style="width:42px;height:42px;border-radius:12px;object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                    {% else %}
+                        <div style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+                                    background:#f1f5f9;color:#64748b;font-weight:800;font-size:0.9rem;">
+                            {{ item.student.first_name|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Name & Subtext -->
+                <div style="flex:1;min-width:0;">
+                     <div style="font-weight:700;color:#1e293b;font-size:0.95rem;display:flex;align-items:center;gap:6px;">
+                        <span class="truncate">{{ item.student.get_full_name|default:item.student.username }}</span>
+                        {% if item.student.id == user.id %}
+                            <span style="background:#0891b2;color:white;font-size:0.65rem;font-weight:800;padding:2px 8px;border-radius:99px;letter-spacing:0.5px;">ME</span>
+                        {% endif %}
+                     </div>
+                </div>
+
+                <!-- Score -->
+                <div style="text-align:right;">
+                    <div style="font-size:1.2rem;font-weight:900;color:#1e293b;">{{ item.total_score }}</div>
+                    <div style="font-size:0.65rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">PTS</div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div style="padding:4rem 2rem;text-align:center;color:#94a3b8;">
+            <i class="fas fa-users" style="font-size:2rem;margin-bottom:1rem;opacity:0.5;"></i>
+            <p>No other rankings available yet.</p>
+        </div>
+    {% endif %}
+</div>

@@ -1,0 +1,375 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard | Liquid_Tripple_R{% endblock %}
+
+{% block content %}
+<style>
+    /* Mobile Responsiveness Improvements */
+    @media (max-width: 768px) {
+        .welcome-section { padding: 1.5rem !important; margin-bottom: 1.5rem !important; }
+        .welcome-section h1 { font-size: 1.5rem !important; }
+        .dashboard-grid { gap: 1rem !important; margin-bottom: 1.5rem !important; }
+        .stat-card { padding: 1rem !important; gap: 0.75rem !important; border-left-width: 4px !important; }
+        .stat-card div span:first-child { font-size: 1.4rem !important; }
+        
+        .overview-container { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+        .overview-circles { justify-content: space-between !important; gap: 1rem !important; }
+        .progress-circle { width: 85px !important; height: 85px !important; }
+        .progress-circle > div { width: 72px !important; height: 72px !important; }
+        .progress-circle span { font-size: 1rem !important; }
+        
+        .achievements-grid { gap: 1rem !important; }
+        .badge-card i { font-size: 1.5rem !important; }
+        .badge-circle { width: 65px !important; height: 65px !important; }
+    }
+</style>
+
+<!-- Welcome Hero Section -->
+<div class="welcome-section" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 2.5rem; border-radius: 1.5rem; color: white; margin-bottom: 2rem; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+    <div style="position: relative; z-index: 1;">
+        <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -1px;">Welcome back, {{ user.first_name|default:user.username }}! 👋</h1>
+        <p style="opacity: 0.9; font-size: 1.1rem; margin-bottom: 1.5rem;">Ready to continue your learning journey today?</p>
+        <div style="display: flex; gap: 1rem; align-items: center; background: rgba(255,255,255,0.1); padding: 0.75rem 1.25rem; border-radius: 1rem; width: fit-content; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);">
+            <i class="fas fa-id-badge" style="color: #60a5fa;"></i>
+            <span style="font-weight: 600; font-size: 0.95rem;">Student ID: <span style="color: #60a5fa;">#{{ profile.student_id|default:"Pending" }}</span></span>
+        </div>
+    </div>
+    <!-- Abstract background decoration -->
+    <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(59,130,246,0.2); border-radius: 50%; blur: 50px;"></div>
+    <div style="position: absolute; bottom: -30px; left: 20%; width: 100px; height: 100px; background: rgba(147,51,234,0.1); border-radius: 50%; blur: 30px;"></div>
+</div>
+
+<div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+    <!-- Attendance -->
+    <div class="stat-card" style="background: white; padding: 1.5rem; border-radius: 1.25rem; box-shadow: 0 10px 25px rgba(0,0,0,0.02); border-left: 5px solid #3b82f6; display: flex; align-items: center; gap: 1.25rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 35px rgba(59,130,246,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.02)';">
+        <div style="width: 54px; height: 54px; background: #eff6ff; border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: #3b82f6; flex-shrink: 0;">
+            <i class="fas fa-calendar-check" style="font-size: 1.5rem;"></i>
+        </div>
+        <div style="flex: 1;">
+            <div style="color: #64748b; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Attendance</div>
+            <div style="display: flex; align-items: baseline; gap: 4px;">
+                <span style="font-size: 1.8rem; font-weight: 800; color: #1e293b;">{{ profile.attendance_count }}</span>
+                <span style="font-size: 0.9rem; color: #94a3b8; font-weight: 600;">Days</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignments -->
+    <div class="stat-card" style="background: white; padding: 1.5rem; border-radius: 1.25rem; box-shadow: 0 10px 25px rgba(0,0,0,0.02); border-left: 5px solid #f97316; display: flex; align-items: center; gap: 1.25rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 35px rgba(249,115,22,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.02)';">
+        <div style="width: 54px; height: 54px; background: #fff7ed; border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: #f97316; flex-shrink: 0;">
+            <i class="fas fa-file-signature" style="font-size: 1.5rem;"></i>
+        </div>
+        <div style="flex: 1;">
+            <div style="color: #64748b; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Assignments</div>
+            <div style="display: flex; align-items: baseline; gap: 4px;">
+                {% if ass_status.pending > 0 %}
+                    <span style="font-size: 1.8rem; font-weight: 800; color: #1e293b;">{{ ass_status.pending }}</span>
+                    <span style="font-size: 0.9rem; color: #94a3b8; font-weight: 600;">Pending</span>
+                {% elif ass_status.expired > 0 and ass_status.completed == 0 %}
+                    <span style="font-size: 1.5rem; font-weight: 800; color: #ef4444;">Expired</span>
+                {% else %}
+                    <span style="font-size: 1.5rem; font-weight: 800; color: #10b981;">Completed</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Quiz Score -->
+    <div class="stat-card" style="background: white; padding: 1.5rem; border-radius: 1.25rem; box-shadow: 0 10px 25px rgba(0,0,0,0.02); border-left: 5px solid #10b981; display: flex; align-items: center; gap: 1.25rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 35px rgba(16,185,129,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.02)';">
+        <div style="width: 54px; height: 54px; background: #ecfdf5; border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: #10b981; flex-shrink: 0;">
+            <i class="fas fa-medal" style="font-size: 1.5rem;"></i>
+        </div>
+        <div style="flex: 1;">
+            <div style="color: #64748b; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Recent Score</div>
+            <div style="display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap;">
+                {% if recent_score_data %}
+                    <span style="font-size: 1.8rem; font-weight: 800; color: #1e293b;">{{ recent_score_data.score }}</span>
+                    <span style="font-size: 0.9rem; color: #94a3b8; font-weight: 600;">/{{ recent_score_data.total }}</span>
+                    <div style="width: 100%; font-size: 0.7rem; color: #64748b; font-weight: 600; margin-top: -4px;">{{ recent_score_data.type }}: {{ recent_score_data.title|truncatechars:20 }}</div>
+                {% else %}
+                    <span style="font-size: 1.8rem; font-weight: 800; color: #94a3b8;">—</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Rank -->
+    <div class="stat-card" 
+         style="background: white; padding: 1.5rem; border-radius: 1.25rem; box-shadow: 0 10px 25px rgba(0,0,0,0.02); 
+                border-left: 5px solid {% if rank == 1 %}#06b6d4{% elif rank == 2 %}#10b981{% elif rank == 3 %}#6366f1{% else %}#f59e0b{% endif %}; 
+                display: flex; align-items: center; gap: 1.25rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;" 
+         onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 35px rgba(0,0,0,0.08)';" 
+         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.02)';"
+         onclick="window.location.href='{% url 'leaderboard' %}'">
+        
+        <div style="width: 54px; height: 54px; 
+                    background: {% if rank == 1 %}#ecfeff{% elif rank == 2 %}#ecfdf5{% elif rank == 3 %}#eef2ff{% else %}#fffbeb{% endif %}; 
+                    border-radius: 1rem; display: flex; align-items: center; justify-content: center; 
+                    color: {% if rank == 1 %}#06b6d4{% elif rank == 2 %}#10b981{% elif rank == 3 %}#6366f1{% else %}#f59e0b{% endif %}; 
+                    flex-shrink: 0;">
+            <i class="fas {% if rank <= 3 %}fa-crown{% else %}fa-medal{% endif %}" style="font-size: 1.5rem;"></i>
+        </div>
+        <div style="flex: 1;">
+            <div style="color: #64748b; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Study Rank</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #1e293b;">#{{ rank|default:"-" }}</div>
+        </div>
+    </div>
+</div>
+
+    <!-- Upcoming Quizzes Section (Horizontal Scroll) -->
+    {% if upcoming_quizzes %}
+    <div style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="font-weight: 700; color: #1e293b; margin: 0;"><i class="fas fa-clock" style="color: #6366f1; margin-right: 0.5rem;"></i> Upcoming Quizzes</h3>
+        </div>
+        <div style="display: flex; gap: 1.5rem; overflow-x: auto; padding-bottom: 1rem; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;">
+            {% for quiz in upcoming_quizzes %}
+            <div class="upcoming-card" style="min-width: 280px; background: white; padding: 1.5rem; border-radius: 1.25rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #6366f1;"></div>
+                <h4 style="margin: 0 0 0.5rem 0; font-weight: 700; color: #334155;">{{ quiz.title }}</h4>
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem; height: 2.5rem; overflow: hidden;">{{ quiz.description|truncatewords:10 }}</p>
+                <div style="background: #f8fafc; padding: 0.75rem; border-radius: 0.75rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Starts In:</span>
+                    <span class="countdown-timer" data-time="{{ quiz.start_time|date:'c' }}" style="font-family: monospace; font-size: 1.1rem; font-weight: 800; color: #6366f1;">Loading...</span>
+                </div>
+                <button disabled style="margin-top: 1rem; width: 100%; padding: 0.6rem; border-radius: 0.75rem; border: none; background: #e2e8f0; color: #94a3b8; font-weight: 700; cursor: not-allowed;">Join Quiz</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Content Middle Row: Progress (Left) & Activity (Right) -->
+    <div id="overview-container" class="overview-container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+        <!-- Academic Overview (Relocated from Profile) -->
+        <div style="background: white; padding: 2rem; border-radius: 1.5rem; box-shadow: 0 4px 25px rgba(0,0,0,0.04); border: 1px solid #f1f5f9;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h3 style="font-weight: 700; color: #1e293b; margin: 0;"><i class="fas fa-chart-pie" style="color: #6366f1; margin-right: 0.5rem;"></i> Academic Overview</h3>
+            </div>
+            
+            <div class="overview-circles" style="display: flex; justify-content: space-around; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+                <!-- Quiz Progress -->
+                <div style="text-align: center;">
+                    <div class="progress-circle" style="width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(#f97316 {{ quiz_p }}%, #f1f5f9 0); position: relative; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem;">
+                        <div style="width: 85px; height: 85px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                            <span style="font-size: 1.2rem; font-weight: 800; color: #1e293b;">{{ quiz_p }}%</span>
+                        </div>
+                    </div>
+                    <div style="font-weight: 700; color: #1e293b; font-size: 0.8rem;">Quiz Marks</div>
+                    <div style="font-size: 0.65rem; color: #64748b; font-weight: 600;">{{ student_q_earned }}/{{ total_q_possible }} Marks</div>
+                </div>
+
+                <!-- Attendance Progress -->
+                <div style="text-align: center;">
+                    <div class="progress-circle" style="width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(#10b981 {{ attendance_p }}%, #f1f5f9 0); position: relative; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem;">
+                        <div style="width: 85px; height: 85px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                            <span style="font-size: 1.2rem; font-weight: 800; color: #1e293b;">{{ attendance_p }}%</span>
+                        </div>
+                    </div>
+                    <div style="font-weight: 700; color: #1e293b; font-size: 0.8rem;">Attendance</div>
+                    <div style="font-size: 0.65rem; color: #64748b; font-weight: 600;">{{ profile.attendance_count }}/30 Days</div>
+                </div>
+
+                <!-- Assignment Progress -->
+                <div style="text-align: center;">
+                    <div class="progress-circle" style="width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(#6366f1 {{ assignment_p }}%, #f1f5f9 0); position: relative; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem;">
+                        <div style="width: 85px; height: 85px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                            <span style="font-size: 1.2rem; font-weight: 800; color: #1e293b;">{{ assignment_p }}%</span>
+                        </div>
+                    </div>
+                    <div style="font-weight: 700; color: #1e293b; font-size: 0.8rem;">Assignment Marks</div>
+                    <div style="font-size: 0.65rem; color: #64748b; font-weight: 600;">{{ student_a_earned }}/{{ total_a_possible }} Marks</div>
+                </div>
+
+                <!-- Tab Switch Counter (NEW) -->
+                <div style="text-align: center;">
+                    <div class="progress-circle" style="width: 100px; height: 100px; border-radius: 50%; background: #fee2e2; border: 2px solid #ef4444; position: relative; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; box-shadow: 0 4px 12px rgba(239,68,68,0.1);">
+                        <div style="width: 85px; height: 85px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                            <span style="font-size: 1.2rem; font-weight: 800; color: #ef4444;">{{ total_tab_switches }}</span>
+                        </div>
+                    </div>
+                    <div style="font-weight: 700; color: #1e293b; font-size: 0.8rem;">Tab Switches</div>
+                    <div style="font-size: 0.65rem; color: #64748b; font-weight: 600;">Live Count</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity Feed -->
+        <div style="background: white; padding: 1.5rem; border-radius: 1.5rem; box-shadow: 0 4px 25px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; display: flex; flex-direction: column; height: fit-content;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h3 style="font-weight: 700; color: #1e293b; font-size: 1.1rem; margin: 0;"><i class="fas fa-bolt" style="color: #f59e0b; margin-right: 0.5rem;"></i> Recent Activity</h3>
+            </div>
+            
+            <div id="activityList" style="display: flex; flex-direction: column; gap: 1rem;">
+                {% if recent_activities %}
+                    {% for activity in recent_activities %}
+                    <div class="activity-item {% if forloop.counter > 5 %}hidden-activity{% endif %}" 
+                         style="display: flex; gap: 0.75rem; align-items: flex-start; padding-bottom: 0.75rem; border-bottom: 1px solid #f8fafc;">
+                        <div style="width: 32px; height: 32px; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #64748b; font-size: 0.8rem;">
+                            {% if "Quiz" in activity.action %}<i class="fas fa-check-circle" style="color: #10b981;"></i>
+                            {% elif "Assignment" in activity.action %}<i class="fas fa-file-upload" style="color: #3b82f6;"></i>
+                            {% elif "Resource" in activity.action %}<i class="fas fa-download" style="color: #6366f1;"></i>
+                            {% else %}<i class="fas fa-circle-notch"></i>{% endif %}
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.85rem; font-weight: 700; color: #334155; line-height: 1.3;">{{ activity.details|default:activity.action }}</div>
+                            <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 2px;">{{ activity.timestamp|timesince }} ago</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if recent_activities|length > 5 %}
+                    <button onclick="toggleActivities()" id="seeMoreActivityBtn" style="background: none; border: none; padding: 0.5rem; color: #3b82f6; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; transition: all 0.2s;">
+                        See More <i class="fas fa-chevron-down"></i>
+                    </button>
+                    {% endif %}
+                {% else %}
+                    <div style="text-align: center; padding: 2rem 0;">
+                        <i class="fas fa-history" style="font-size: 2rem; color: #e2e8f0; margin-bottom: 0.75rem;"></i>
+                        <p style="color: #94a3b8; font-size: 0.85rem; margin: 0;">No recent activity</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div style="background: white; padding: 2rem; border-radius: 1.5rem; box-shadow: 0 4px 25px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; margin-top: 2.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="font-weight: 700; color: #1e293b;"><i class="fas fa-bullhorn" style="color: #3b82f6; margin-right: 0.5rem;"></i> Latest Announcements</h3>
+            <a href="{% url 'notice_list' %}" style="color: #3b82f6; text-decoration: none; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 0.3rem;">
+                View All <i class="fas fa-arrow-right" style="font-size: 0.75rem;"></i>
+            </a>
+        </div>
+        
+        <div class="announcement-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            {% if latest_notices %}
+                {% for notice in latest_notices %}
+                <div class="notice-card {% if forloop.counter > 5 %}hidden-notice{% endif %}" 
+                     style="padding: 1.25rem; border-radius: 1rem; background: #f8fafc; border: 1px solid #f1f5f9; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.borderColor='#e2e8f0';" onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#f1f5f9';">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <h4 style="font-weight: 700; color: #334155; font-size: 1rem;">{{ notice.title }}</h4>
+                        <span style="font-size: 0.75rem; font-weight: 600; color: #94a3b8;">{{ notice.created_at|date:"d/m" }}</span>
+                    </div>
+                    <p style="color: #64748b; font-size: 0.9rem; line-height: 1.5; margin-bottom: 0;">{{ notice.content|truncatewords:20 }}</p>
+                </div>
+                {% endfor %}
+                
+                {% if latest_notices|length > 5 %}
+                <div style="grid-column: 1 / -1; display: flex; justify-content: center; margin-top: 0.5rem;">
+                    <button onclick="toggleNotices(this)" style="background: none; border: none; padding: 0.5rem 1.5rem; color: #3b82f6; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;">
+                        <span>See More</span> <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                {% endif %}
+            {% else %}
+                <div style="text-align: center; padding: 2rem; color: #94a3b8; grid-column: 1 / -1;">
+                    <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p>No new notices available.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Countdown Timer JS
+    function updateTimers() {
+        document.querySelectorAll('.countdown-timer').forEach(timer => {
+            const targetDate = new Date(timer.getAttribute('data-time')).getTime();
+            const now = new Date().getTime();
+            const diff = targetDate - now;
+
+            if (diff <= 0) {
+                timer.innerHTML = "AVAILABLE NOW";
+                timer.style.color = "#10b981";
+                const btn = timer.closest('.upcoming-card').querySelector('button');
+                btn.disabled = false;
+                btn.innerHTML = "Join Now";
+                btn.style.background = "#6366f1";
+                btn.style.color = "white";
+                btn.style.cursor = "pointer";
+                btn.onclick = () => window.location.href = "{% url 'quiz_list' %}";
+            } else {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                let timeStr = "";
+                if (days > 0) timeStr += days + "d ";
+                timeStr += hours.toString().padStart(2, '0') + ":" + 
+                           mins.toString().padStart(2, '0') + ":" + 
+                           secs.toString().padStart(2, '0');
+                timer.innerHTML = timeStr;
+            }
+        });
+    }
+    function toggleActivities() {
+        const btn = document.getElementById('seeMoreActivityBtn');
+        const isShowing = btn.innerText.includes('See Less');
+        
+        const allItems = document.querySelectorAll('.activity-item');
+        allItems.forEach((item, idx) => {
+            if (idx >= 5) {
+                if (isShowing) {
+                    item.classList.add('hidden-activity');
+                    item.style.animation = '';
+                } else {
+                    item.classList.remove('hidden-activity');
+                    item.style.display = 'flex';
+                    item.style.animation = 'itemFadeIn 0.4s ease forwards';
+                }
+            }
+        });
+        
+        btn.innerHTML = isShowing ? 'See More <i class="fas fa-chevron-down"></i>' : 'See Less <i class="fas fa-chevron-up"></i>';
+    }
+
+    function toggleNotices(btn) {
+        const notices = document.querySelectorAll('.notice-card');
+        const isShowing = btn.innerText.includes('See Less');
+        
+        notices.forEach((notice, idx) => {
+            if (idx >= 5) {
+                if (isShowing) {
+                    notice.classList.add('hidden-notice');
+                    notice.style.animation = '';
+                } else {
+                    notice.classList.remove('hidden-notice');
+                    notice.style.display = 'block'; // Ensure it's visible after removing hidden-notice
+                    notice.style.animation = 'itemFadeIn 0.4s ease forwards';
+                }
+            }
+        });
+        
+        btn.querySelector('span').innerText = isShowing ? 'See More' : 'See Less';
+        btn.querySelector('i').className = isShowing ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+    }
+
+    setInterval(updateTimers, 1000);
+    updateTimers();
+</script>
+
+<!-- Mobile Specific Adjustments -->
+<style>
+    @media (max-width: 991px) {
+        .dashboard-content {
+            grid-template-columns: 1fr !important;
+        }
+        .welcome-section h1 {
+            font-size: 1.75rem !important;
+        }
+    }
+    @media (max-width: 576px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr !important;
+        }
+        .welcome-section {
+            padding: 1.5rem !important;
+        }
+    }
+
+    .hidden-activity, .hidden-notice { display: none !important; }
+</style>
+{% endblock %}

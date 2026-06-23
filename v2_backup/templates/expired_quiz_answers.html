@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ quiz.title }} - Correct Answers{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="result-container">
+
+        <div class="score-display">
+            <div class="score-card">
+                <div style="font-size:60px; margin-bottom:12px;">⏰</div>
+                <h2>{{ quiz.title }}</h2>
+                <p style="color:#dc2626; font-weight:600; font-size:16px;">Expired Quiz Time</p>
+                {% if quiz.expires_at %}
+                <div style="margin-top:8px; font-size:13px; color:#888;">
+                    Expired on: {{ quiz.expires_at|date:"d M Y, h:i A" }}
+                </div>
+                {% endif %}
+                <div style="margin-top:16px; padding:12px 20px; background:#fef3c7; border-radius:8px; font-size:14px; color:#92400e;">
+                    ⚠️ This quiz has expired. Correct answers are shown below.
+                </div>
+            </div>
+        </div>
+
+        <div class="detailed-results" style="margin-top:32px;">
+            <h3>📋 Correct Answers</h3>
+
+            {% for question in questions %}
+                <div style="margin-bottom:20px; padding:20px; border-radius:10px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.07);">
+                    <div style="margin-bottom:12px;">
+                        <span style="font-size:13px; color:#6b7280;">Question {{ forloop.counter }}</span>
+                        <p style="font-size:16px; font-weight:600; margin:6px 0 0 0;">{{ question.text }}</p>
+                    </div>
+                    <div>
+                        {% for option in question.options.all %}
+                            <div style="display:flex; align-items:center; gap:10px; padding:12px 16px; margin:6px 0; border-radius:8px; {% if option.is_correct %}border:2px solid #16a34a; background:#f0fdf4;{% else %}border:2px solid #e5e7eb; background:#fafafa;{% endif %}">
+                                {% if option.is_correct %}
+                                    <span style="color:#16a34a; font-weight:bold; font-size:18px; min-width:22px;">✓</span>
+                                {% else %}
+                                    <span style="color:#d1d5db; font-size:18px; min-width:22px;">○</span>
+                                {% endif %}
+                                <span style="{% if option.is_correct %}color:#15803d; font-weight:600;{% else %}color:#6b7280;{% endif %}">
+                                    {{ option.text }}
+                                    {% if option.is_correct %}
+                                        <span style="font-size:12px; margin-left:8px; background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:20px;">Correct Answer</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="result-actions" style="margin-top:24px;">
+            <a href="/" class="btn btn-primary">← Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Add Question | {{ quiz.title }}{% endblock %}
+
+{% block content %}
+
+<div style="max-width:640px;margin:0 auto;">
+
+
+    <!-- ── Header ── -->
+    <div style="margin-bottom:1.75rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.3rem;">
+            <a href="{% url 'quiz_detail' quiz.id %}"
+               style="width:34px;height:34px;border-radius:10px;background:white;
+                      border:1px solid #e2e8f0;display:flex;align-items:center;
+                      justify-content:center;color:#64748b;text-decoration:none;
+                      box-shadow:0 1px 4px rgba(0,0,0,0.05);transition:all .2s;flex-shrink:0;"
+               onmouseover="this.style.background='#f1f5f9'"
+               onmouseout="this.style.background='white'">
+                <i class="fas fa-arrow-left" style="font-size:0.8rem;"></i>
+            </a>
+            <div>
+                <h1 style="font-size:1.55rem;font-weight:800;color:#1e293b;letter-spacing:-0.5px;margin:0;line-height:1.2;">
+                    ✏️ Add New Question
+                </h1>
+                <p style="color:#94a3b8;font-size:0.82rem;margin:3px 0 0;">
+                    Quiz: <span style="color:#3b82f6;font-weight:700;">{{ quiz.title }}</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Form card ── -->
+    <div style="background:white;border-radius:1.5rem;
+                box-shadow:0 10px 40px rgba(0,0,0,0.06);
+                border:1px solid #f1f5f9;overflow:hidden;">
+
+        <!-- top strip -->
+        <div style="height:5px;background:linear-gradient(90deg,#6366f1,#8b5cf6,#3b82f6);"></div>
+
+        <form method="post" style="padding:2rem;" id="aq-form">
+            {% csrf_token %}
+
+            <!-- ── Question text ── -->
+            <div style="margin-bottom:1.75rem;">
+                <label style="display:flex;align-items:center;gap:0.5rem;
+                               font-size:0.85rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem;"
+                       for="aq-qtext">
+                    <i class="fas fa-question-circle" style="color:#6366f1;"></i>
+                    Question Text
+                    <span style="margin-left:auto;background:#eff6ff;color:#2563eb;
+                                 font-size:0.65rem;font-weight:800;padding:2px 7px;
+                                 border-radius:99px;text-transform:uppercase;
+                                 letter-spacing:.4px;border:1px solid #bfdbfe;">required</span>
+                </label>
+                <textarea id="aq-qtext" name="question_text"
+                          placeholder="e.g. What is the capital of France?"
+                          rows="3" required
+                          style="width:100%;padding:0.8rem 1rem;border:1.5px solid #e2e8f0;
+                                 border-radius:0.85rem;font-size:0.92rem;
+                                 font-family:'Outfit','Segoe UI',sans-serif;color:#1e293b;
+                                 background:#f8fafc;transition:all .2s;outline:none;
+                                 resize:vertical;box-sizing:border-box;"
+                          onfocus="this.style.borderColor='#6366f1';this.style.background='white';this.style.boxShadow='0 0 0 3px rgba(99,102,241,0.1)'"
+                          onblur="this.style.borderColor='#e2e8f0';this.style.background='#f8fafc';this.style.boxShadow=''">
+                </textarea>
+            </div>
+
+            <!-- ── Divider ── -->
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;">
+                <div style="flex:1;height:1px;background:#f1f5f9;"></div>
+                <div style="display:flex;align-items:center;gap:6px;
+                            background:#f5f3ff;border:1px solid #ddd6fe;
+                            padding:4px 12px;border-radius:99px;">
+                    <i class="fas fa-list-ul" style="font-size:0.7rem;color:#7c3aed;"></i>
+                    <span style="font-size:0.75rem;font-weight:700;color:#6d28d9;">Answer Options</span>
+                </div>
+                <div style="flex:1;height:1px;background:#f1f5f9;"></div>
+            </div>
+            <p style="font-size:0.8rem;color:#94a3b8;margin:-0.75rem 0 1.25rem;text-align:center;">
+                Select the radio button next to the correct answer
+            </p>
+
+            <!-- ── Options ── -->
+            <div style="display:flex;flex-direction:column;gap:0.85rem;margin-bottom:1.75rem;" id="aq-options">
+                {% for i in "1234" %}
+                <div class="aq-opt-wrap" data-opt="{{ i }}">
+
+                    <!-- Option label row -->
+                    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;">
+                        <span class="aq-opt-num aq-opt-num-{{ i }}"
+                              style="width:24px;height:24px;border-radius:7px;
+                                     background:#f1f5f9;color:#64748b;
+                                     display:flex;align-items:center;justify-content:center;
+                                     font-size:0.72rem;font-weight:800;">{{ i }}</span>
+                        <span style="font-size:0.8rem;font-weight:700;color:#475569;">Option {{ i }}</span>
+                        {% if i == '1' %}
+                        <span style="margin-left:auto;font-size:0.65rem;font-weight:700;color:#22c55e;
+                                     background:#f0fdf4;padding:2px 8px;border-radius:99px;
+                                     border:1px solid #bbf7d0;" id="aq-selected-label-{{ i }}">✓ Selected</span>
+                        {% else %}
+                        <span style="margin-left:auto;font-size:0.65rem;font-weight:700;color:#94a3b8;
+                                     display:none;" id="aq-selected-label-{{ i }}">✓ Selected</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Input + radio row -->
+                    <div style="display:flex;align-items:center;gap:0.6rem;">
+
+                        <!-- Hidden radio -->
+                        <input type="radio" name="correct_option" value="{{ i }}"
+                               id="aq-radio-{{ i }}"
+                               {% if i == '1' %}checked{% endif %}
+                               style="display:none;"
+                               onchange="aqSelectOption('{{ i }}')">
+
+                        <!-- Custom radio button -->
+                        <div class="aq-radio {% if i == '1' %}aq-radio-active{% endif %}"
+                             id="aq-radio-vis-{{ i }}"
+                             onclick="document.getElementById('aq-radio-{{ i }}').click();"
+                             style="width:22px;height:22px;border-radius:50%;
+                                    border:2px solid {% if i == '1' %}#22c55e{% else %}#cbd5e1{% endif %};
+                                    background:{% if i == '1' %}#f0fdf4{% else %}white{% endif %};
+                                    display:flex;align-items:center;justify-content:center;
+                                    flex-shrink:0;cursor:pointer;transition:all .18s;">
+                            {% if i == '1' %}
+                            <div id="aq-radio-dot-{{ i }}"
+                                 style="width:10px;height:10px;border-radius:50%;background:#22c55e;"></div>
+                            {% else %}
+                            <div id="aq-radio-dot-{{ i }}"
+                                 style="width:10px;height:10px;border-radius:50%;background:transparent;"></div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Text input -->
+                        <input type="text" name="option_{{ i }}"
+                               placeholder="Enter option text…" required
+                               id="aq-input-{{ i }}"
+                               style="flex:1;padding:0.7rem 1rem;
+                                      border:1.5px solid {% if i == '1' %}#bbf7d0{% else %}#e2e8f0{% endif %};
+                                      border-radius:0.8rem;font-size:0.88rem;
+                                      font-family:'Outfit','Segoe UI',sans-serif;
+                                      color:#1e293b;background:{% if i == '1' %}#f0fdf4{% else %}#f8fafc{% endif %};
+                                      transition:all .2s;outline:none;"
+                               onfocus="this.style.boxShadow='0 0 0 3px rgba(99,102,241,0.1)'"
+                               onblur="this.style.boxShadow=''">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- ── Actions ── -->
+            <div style="height:1px;background:#f1f5f9;margin-bottom:1.5rem;"></div>
+            <div style="display:flex;gap:0.75rem;">
+                <button type="submit"
+                        style="flex:1;display:inline-flex;align-items:center;justify-content:center;
+                               gap:7px;padding:0.75rem 1.5rem;
+                               background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                               color:white;border:none;border-radius:0.85rem;
+                               font-size:0.9rem;font-weight:700;cursor:pointer;
+                               box-shadow:0 4px 14px rgba(99,102,241,0.3);
+                               font-family:'Outfit','Segoe UI',sans-serif;transition:all .2s;"
+                        onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 22px rgba(99,102,241,0.38)'"
+                        onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(99,102,241,0.3)'">
+                    <i class="fas fa-plus-circle"></i> Add Question
+                </button>
+                <a href="{% url 'quiz_detail' quiz.id %}"
+                   style="display:inline-flex;align-items:center;gap:6px;
+                          padding:0.75rem 1.3rem;border-radius:0.85rem;
+                          background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;
+                          font-size:0.88rem;font-weight:700;text-decoration:none;
+                          font-family:'Outfit','Segoe UI',sans-serif;transition:all .2s;"
+                   onmouseover="this.style.background='#f1f5f9';this.style.color='#1e293b'"
+                   onmouseout="this.style.background='#f8fafc';this.style.color='#64748b'">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Tip box -->
+    <div style="display:flex;align-items:flex-start;gap:0.85rem;
+                background:white;border:1px solid #f1f5f9;
+                border-radius:1rem;padding:1.1rem 1.4rem;
+                margin-top:1.25rem;box-shadow:0 4px 16px rgba(0,0,0,0.03);">
+        <div style="width:34px;height:34px;border-radius:9px;background:#f5f3ff;
+                    color:#7c3aed;display:flex;align-items:center;
+                    justify-content:center;flex-shrink:0;font-size:0.9rem;">
+            <i class="fas fa-lightbulb"></i>
+        </div>
+        <div>
+            <div style="font-weight:700;color:#1e293b;font-size:0.88rem;margin-bottom:3px;">Tip</div>
+            <p style="color:#64748b;font-size:0.82rem;margin:0;line-height:1.5;">
+                Click the <strong style="color:#22c55e;">circle</strong> next to an option to mark it as the correct answer.
+                Only <strong>one correct answer</strong> is allowed per question.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function aqSelectOption(selected) {
+    ['1','2','3','4'].forEach(function(i) {
+        var isSelected = (i === selected);
+        var dot    = document.getElementById('aq-radio-dot-' + i);
+        var vis    = document.getElementById('aq-radio-vis-' + i);
+        var input  = document.getElementById('aq-input-' + i);
+        var lbl    = document.getElementById('aq-selected-label-' + i);
+
+        if (isSelected) {
+            dot.style.background   = '#22c55e';
+            vis.style.borderColor  = '#22c55e';
+            vis.style.background   = '#f0fdf4';
+            input.style.borderColor = '#bbf7d0';
+            input.style.background  = '#f0fdf4';
+            lbl.style.display      = 'inline-flex';
+            lbl.style.color        = '#22c55e';
+        } else {
+            dot.style.background   = 'transparent';
+            vis.style.borderColor  = '#cbd5e1';
+            vis.style.background   = 'white';
+            input.style.borderColor = '#e2e8f0';
+            input.style.background  = '#f8fafc';
+            lbl.style.display      = 'none';
+        }
+    });
+}
+</script>
+
+<style>
+@media (max-width: 640px) {
+    div[style*="max-width:640px"] { width: 95% !important; margin: 1rem auto !important; }
+    form { padding: 1.25rem !important; }
+    h1 { font-size: 1.35rem !important; }
+    div[style*="display:flex;gap:0.75rem"] { flex-direction: column; align-items: flex-start; }
+    
+    /* Action buttons stack */
+    div[style*="display:flex;gap:0.75rem"] { flex-direction: column !important; }
+    button[type="submit"], a[href*="quiz_detail"] { width: 100% !important; justify-content: center !important; }
+}
+
+@media (max-width: 480px) {
+    .aq-opt-wrap input[type="text"] { font-size: 0.85rem !important; }
+    div[style*="display:flex;gap:0.85rem"] { gap: 1.25rem !important; }
+}
+</style>
+{% endblock %}

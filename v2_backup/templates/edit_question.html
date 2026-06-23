@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Question - Liquid_Triple_R{% endblock %}
+
+{% block content %}
+<div class="container admin-container">
+    <div class="admin-header">
+        <h1>✏️ Edit Question</h1>
+    </div>
+
+    <div class="form-container">
+        <form method="post" class="admin-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="question_text">Question Text *</label>
+                <textarea 
+                    id="question_text" 
+                    name="question_text" 
+                    placeholder="Enter the question"
+                    rows="3"
+                    required
+                    class="form-input"
+                >{{ question.text }}</textarea>
+            </div>
+
+            <div class="options-section">
+                <h3>Answer Options</h3>
+                <p class="hint">Select which option is correct</p>
+
+                {% for option in options %}
+                    <div class="option-input-group">
+                        <div class="option-number">Option {{ forloop.counter }}</div>
+                        <input 
+                            type="text" 
+                            name="option_{{ forloop.counter }}" 
+                            value="{{ option.text }}"
+                            placeholder="Enter option text"
+                            required
+                            class="form-input"
+                        >
+                        <label class="option-radio">
+                            <input 
+                                type="radio" 
+                                name="correct_option" 
+                                value="{{ forloop.counter }}"
+                                {% if option.is_correct %}checked{% endif %}
+                                required
+                            >
+                            <span>Correct Answer</span>
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    Save Changes
+                </button>
+                <a href="{% url 'quiz_detail' question.quiz.id %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

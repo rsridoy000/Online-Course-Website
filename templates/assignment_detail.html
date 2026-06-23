@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ assignment.title }} | Liquid_Triple_R{% endblock %}
+
+{% block content %}
+<style>
+    .detail-container {
+        animation: fadeIn 0.8s ease-out;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .detail-header {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        padding: 2.5rem;
+        border-radius: 1.5rem;
+        color: white;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .detail-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .detail-stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 1.25rem;
+        border-radius: 1rem;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .detail-stat-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94a3b8;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .detail-stat-value {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: white;
+    }
+
+    .info-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 1.5rem;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .requirement-box {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        line-height: 1.7;
+        color: #475569;
+        border: 1px solid #f1f5f9;
+    }
+
+    .upload-zone {
+        display: block;
+        border: 2px dashed #cbd5e1;
+        padding: 3rem 2rem;
+        text-align: center;
+        border-radius: 1.25rem;
+        background: #f8fafc;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .upload-zone:hover {
+        border-color: #6366f1;
+        background: #f5f7ff;
+    }
+
+    .btn-submit {
+        background: #6366f1;
+        color: white;
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: 0.75rem;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        width: 100%;
+        margin-top: 1.5rem;
+    }
+
+    .btn-submit:hover {
+        background: #4f46e5;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .feedback-card {
+        background: #f0fdfa;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        border-left: 4px solid #10b981;
+        margin-top: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .detail-stats { grid-template-columns: 1fr; }
+        .detail-header-top { flex-direction: column; gap: 1rem; align-items: flex-start !important; }
+        .detail-header { padding: 1.5rem; }
+        .info-section { padding: 1.5rem; }
+        .upload-zone { padding: 2rem 1rem; }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="detail-container">
+
+    <!-- Header -->
+    <div class="detail-header">
+        <div class="detail-header-top" style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h1 style="font-size: 1.75rem; font-weight: 800; margin: 0 0 0.5rem 0; line-height: 1.2;">{{ assignment.title }}</h1>
+                <p style="color: #94a3b8; font-size: 0.9rem; font-weight: 600;">
+                    <i class="far fa-clock"></i> Due: {{ assignment.deadline|date:"d/m/Y H:i" }}
+                </p>
+                
+                {% if submission %}
+                <a href="#submission-area" style="display: inline-flex; align-items: center; gap: 8px; margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border-radius: 8px; font-size: 0.8rem; font-weight: 800; text-decoration: none; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='translateY(0)';">
+                    <i class="fas fa-check-double"></i> View My Submission
+                </a>
+                {% endif %}
+            </div>
+            
+            {% if submission %}
+            <div style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; border: 1px solid rgba(34, 197, 94, 0.2);">
+                Submitted
+            </div>
+            {% else %}
+            <div style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;">
+                Active
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="detail-stats">
+            <div class="detail-stat-card">
+                <div class="detail-stat-label">Total Points</div>
+                <div class="detail-stat-value">{{ assignment.total_marks }}</div>
+            </div>
+            <div class="detail-stat-card">
+                <div class="detail-stat-label">Submissions</div>
+                <div class="detail-stat-value">{{ assignment.submissions.count }}</div>
+            </div>
+            <div class="detail-stat-card">
+                <div class="detail-stat-label">My Grade</div>
+                <div class="detail-stat-value">
+                    {% if submission %}
+                        {% if submission.is_graded %}
+                            {% if submission.is_published or assignment.is_deadline_passed %}
+                                {{ submission.marks }}
+                            {% else %}
+                                <span style="font-size: 0.9rem; color: #10b981;">Graded</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="font-size: 0.9rem; color: #94a3b8;">Pending</span>
+                        {% endif %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="info-section">
+        <h3 class="section-title"><i class="fas fa-align-left" style="color: #6366f1;"></i> Assignment Instructions</h3>
+        <div class="requirement-box" style="word-break: break-word; overflow-wrap: break-word;">
+            {{ assignment.description|linebreaks }}
+        </div>
+        
+        {% if assignment.requirements_file %}
+        <a href="{{ assignment.requirements_file.url }}" download style="display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; padding: 1.25rem; background: #eff6ff; border-radius: 0.75rem; text-decoration: none; border: 1px solid #dbeafe; transition: all 0.2s;" onmouseover="this.style.background='#dbeafe';" onmouseout="this.style.background='#eff6ff';">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <i class="fas fa-file-contract" style="color: #3b82f6; font-size: 1.5rem;"></i>
+                <div style="text-align: left;">
+                    <div style="font-size: 0.9rem; font-weight: 800; color: #1e293b;">Requirements Document</div>
+                    <div style="font-size: 0.7rem; color: #64748b; font-weight: 600;">Download for complete details</div>
+                </div>
+            </div>
+            <i class="fas fa-download" style="color: #3b82f6;"></i>
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Submission Area -->
+    <div class="info-section" id="submission-area">
+        <h3 class="section-title">
+            <i class="fas fa-cloud-upload-alt" style="color: #3b82f6;"></i> 
+            {% if submission %}Your Submission{% else %}Upload Solution{% endif %}
+        </h3>
+        
+        {% if submission %}
+            <div style="padding: 2.5rem 2rem; background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 1.25rem; text-align: center; animation: slideIn 0.5s ease-out;">
+                <div style="width: 60px; height: 60px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h4 style="color: #166534; font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem;">Already Submitted</h4>
+                <p style="color: #15803d; font-size: 0.9rem; font-weight: 600; margin-bottom: 1.5rem;">
+                    You have successfully submitted your solution on {{ submission.submitted_at|date:"d/m/Y | H:i" }}.
+                </p>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 1rem; background: white; border-radius: 0.75rem; border: 1px solid #dcfce7; max-width: 300px; margin: 0 auto;">
+                    {% if submission.file %}
+                        <i class="fas fa-file-alt" style="color: #22c55e;"></i>
+                        <a href="{{ submission.file.url }}" target="_blank" style="color: #16a34a; font-weight: 700; text-decoration: none; font-size: 0.85rem;">View Uploaded File</a>
+                    {% endif %}
+                    {% if submission.drive_link %}
+                        <i class="fab fa-google-drive" style="color: #22c55e;"></i>
+                        <a href="{{ submission.drive_link }}" target="_blank" style="color: #16a34a; font-weight: 700; text-decoration: none; font-size: 0.85rem;">View Drive Link</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% elif assignment.is_deadline_passed %}
+            <div style="padding: 3rem 2rem; background: #fff1f2; border: 2px solid #fecdd3; border-radius: 1.25rem; text-align: center;">
+                <div style="width: 60px; height: 60px; background: #ef4444; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);">
+                    <i class="fas fa-calendar-times"></i>
+                </div>
+                <h4 style="color: #991b1b; font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem;">Submission Closed</h4>
+                <p style="color: #b91c1c; font-size: 0.95rem; font-weight: 600; margin: 0;">
+                    The deadline for this assignment was {{ assignment.deadline|date:"d/m/Y | H:i" }}.<br>
+                    You can no longer submit your work.
+                </p>
+            </div>
+        {% else %}
+            <form action="{% url 'submit_assignment' assignment.id %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div style="margin-bottom: 1.5rem; text-align: left;">
+                    <label for="drive_link" style="display: block; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">Submit Project Link (Google Drive / GitHub / etc.):</label>
+                    <input type="url" name="drive_link" id="drive_link" required placeholder="https://drive.google.com/..." style="width: 100%; padding: 0.85rem 1rem; border: 2px solid #f1f5f9; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; box-sizing: border-box;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#f1f5f9'">
+                </div>
+                
+                <div style="background: #fffbeb; border: 1px solid #fef3c7; padding: 1rem; border-radius: 0.75rem; display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 1rem;">
+                    <i class="fas fa-info-circle" style="color: #d97706; margin-top: 2px;"></i>
+                    <p style="margin: 0; font-size: 0.8rem; color: #92400e; font-weight: 600;">Please ensure the Drive link is shared as <strong>"Anyone with the link"</strong> so the instructor can view it.</p>
+                </div>
+                
+                <button type="submit" class="btn-submit">
+                    Submit Now
+                </button>
+            </form>
+        {% endif %}
+
+        {% if submission and submission.is_graded %}
+            {% if submission.is_published or assignment.is_deadline_passed %}
+                {% if submission.feedback %}
+                <div class="feedback-card" style="margin-top: 2rem;">
+                    <h4 style="font-size: 0.95rem; font-weight: 800; color: #065f46; margin-bottom: 0.5rem;"><i class="fas fa-comment-dots"></i> Instructor's Feedback</h4>
+                    <p style="color: #047857; font-size: 0.9rem; line-height: 1.6; margin: 0;">{{ submission.feedback }}</p>
+                </div>
+                {% endif %}
+            {% else %}
+                <div style="margin-top: 2rem; padding: 1.25rem; background: #f8fafc; border-radius: 1rem; border: 1px solid #e2e8f0; text-align: center;">
+                    <p style="color: #64748b; font-size: 0.85rem; font-weight: 600; margin: 0;">
+                        <i class="fas fa-lock"></i> Feedback and marks will be visible after the deadline or when published.
+                    </p>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+    </div>
+</div>
+
+{% endblock %}

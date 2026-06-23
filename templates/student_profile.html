@@ -1,0 +1,516 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Profile | Liquid_Tripple_R{% endblock %}
+
+{% block content %}
+<div class="profile-container" style="max-width: 800px; margin: 0 auto; padding: 2rem 1rem;">
+    
+    <!-- Hero Profile Header -->
+    <div class="profile-hero" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 3rem 2rem; border-radius: 1.5rem; color: white; margin-bottom: 2rem; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+        <div class="avatar-section" style="position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+            <div style="position: relative; width: 120px; height: 120px;">
+                {% if profile.profile_image %}
+                    <img src="{{ profile.profile_image.url }}" id="avatarImg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255,255,255,0.2); box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                {% else %}
+                    <div id="avatarLetter" style="width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #60a5fa); border: 4px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 800; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                        {{ student.first_name|first|upper }}
+                    </div>
+                {% endif %}
+                <label for="imgInput" style="position: absolute; bottom: 0; right: 0; background: #3b82f6; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid #1e293b; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <i class="fas fa-camera" style="font-size: 0.9rem;"></i>
+                </label>
+            </div>
+            {% if profile.profile_image %}
+            <form method="POST" action="{% url 'remove_profile_image' %}" id="removePhotoForm">
+                {% csrf_token %}
+                <button type="button" onclick="document.getElementById('removePhotoModal').style.display='flex'" style="background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); border-radius: 20px; padding: 0.35rem 1rem; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(239,68,68,0.35)'" onmouseout="this.style.background='rgba(239,68,68,0.2)'">
+                    <i class="fas fa-trash-alt" style="margin-right: 4px;"></i> Remove Photo
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="info-section" style="position: relative; z-index: 1; flex: 1; min-width: 250px;">
+            <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.25rem; letter-spacing: -1px;">{{ student.get_full_name|default:student.username }}</h1>
+            <p style="opacity: 0.7; font-size: 1rem; margin-bottom: 1.25rem; font-weight: 500;">{{ student.email }}</p>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; 
+                            background: rgba(59,130,246,0.15); padding: 0.5rem 1rem; border-radius: 2rem; 
+                            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); 
+                            font-weight: 700; font-size: 0.85rem; color: #60a5fa;">
+                    <i class="fas fa-id-badge"></i>
+                    <span>ID: #{{ profile.student_id|default:"---" }}</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                {% if my_rank %}
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; 
+                            background: {% if my_rank == 1 %}rgba(6,182,212,0.15){% elif my_rank == 2 %}rgba(16,185,129,0.15){% elif my_rank == 3 %}rgba(99,102,241,0.15){% else %}rgba(245,158,11,0.15){% endif %}; 
+                            padding: 0.5rem 1rem; border-radius: 2rem; backdrop-filter: blur(10px); 
+                            border: 1px solid rgba(255,255,255,0.1); font-weight: 700; font-size: 0.85rem;
+                            color: {% if my_rank == 1 %}#06b6d4{% elif my_rank == 2 %}#10b981{% elif my_rank == 3 %}#6366f1{% else %}#f59e0b{% endif %};">
+                    <i class="fas {% if my_rank <= 3 %}fa-crown{% else %}fa-medal{% endif %}"></i>
+                    <span>Rank: <span>#{{ my_rank }}</span></span>
+                </div>
+                {% endif %}
+
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; 
+                            background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 2rem; 
+                            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); 
+                            font-weight: 700; font-size: 0.85rem; color: #10b981;">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Attendance: <span>{{ attendance_count }} Days</span></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Abstract Decoration -->
+        <div style="position: absolute; top: -40px; right: -40px; width: 150px; height: 150px; background: rgba(59,130,246,0.15); border-radius: 50%; filter: blur(40px);"></div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem;">
+        <!-- Rank Card -->
+        <div class="p-stat-card" 
+             style="background: white; padding: 1.25rem; border-radius: 1.25rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
+                    border-left: 4px solid {% if my_rank == 1 %}#06b6d4{% elif my_rank == 2 %}#10b981{% elif my_rank == 3 %}#6366f1{% else %}#f59e0b{% endif %}; 
+                    transition: all 0.3s; cursor:pointer;" 
+             onclick="window.location.href='{% url 'leaderboard' %}'"
+             onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.06)';" 
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.03)';">
+            <div style="color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Rank</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">#{{ my_rank|default:"—" }}</div>
+        </div>
+        <!-- Quizzes Card -->
+        <div class="p-stat-card" style="background: white; padding: 1.25rem; border-radius: 1.25rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-left: 4px solid #3b82f6; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(59,130,246,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.03)';">
+            <div style="color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Quizzes</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">{{ attempts.count }}</div>
+        </div>
+        <!-- Latest Score Card -->
+        <div class="p-stat-card" style="background: white; padding: 1.25rem; border-radius: 1.25rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-left: 4px solid #f97316; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(249,115,22,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.03)';">
+            <div style="color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Recent Score</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">
+                {% if attempts.count > 0 %}
+                    {% for a in attempts %}{% if forloop.first %}{{ a.score }}{% endif %}{% endfor %}
+                {% else %}—{% endif %}
+            </div>
+        </div>
+        <!-- Total Marks Card -->
+        <div class="p-stat-card" style="background: white; padding: 1.25rem; border-radius: 1.25rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-left: 4px solid #10b981; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(16,185,129,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.03)';">
+            <div style="color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Total Points</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">{{ total_marks }}</div>
+        </div>
+        <!-- Tab Switches Card -->
+        <div class="p-stat-card" style="background: white; padding: 1.25rem; border-radius: 1.25rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-left: 4px solid #ef4444; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(239,68,68,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.03)';">
+            <div style="color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Tab Switches</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #ef4444;">{{ total_tab_switches }}</div>
+        </div>
+    </div>
+      <!-- Achievements & Progress Tracking Section -->
+
+
+
+
+    <!-- Edit Profile Card -->
+    <div style="background: white; padding: 2.5rem; border-radius: 1.5rem; box-shadow: 0 4px 30px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; margin-bottom: 2.5rem;">
+        <h3 style="font-weight: 700; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-edit" style="color: #3b82f6;"></i> Edit Profile
+        </h3>
+        <form method="POST" enctype="multipart/form-data" id="profileForm" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            {% csrf_token %}
+            <input type="file" name="profile_image" id="imgInput" accept="image/*" style="display:none;" onchange="previewImage(this); document.getElementById('profileForm').submit();">
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #64748b; margin-bottom: 0.5rem;">Full Name</label>
+                    <input type="text" name="full_name" value="{{ student.get_full_name }}" placeholder="Your full name" style="width: 100%; padding: 0.85rem 1rem; border: 2px solid #f1f5f9; border-radius: 10px; font-size: 0.95rem; font-weight: 600; color: #1e293b; transition: all 0.2s;" onfocus="this.style.borderColor='#3b82f6'; this.style.background='white'; this.style.outline='none';" onblur="this.style.borderColor='#f1f5f9';">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #64748b; margin-bottom: 0.5rem;">Email Address (Locked)</label>
+                    <input type="text" value="{{ student.email }}" disabled style="width: 100%; padding: 0.85rem 1rem; border: 2px solid #f1f5f9; border-radius: 10px; font-size: 0.95rem; font-weight: 600; color: #94a3b8; background: #f8fafc; cursor: not-allowed;">
+                </div>
+            </div>
+            
+            <button type="submit" style="width: fit-content; background: #3b82f6; color: white; border: none; padding: 0.85rem 2rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(59,130,246,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 15px rgba(59,130,246,0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(59,130,246,0.3)';">
+                <i class="fas fa-save" style="margin-right: 0.5rem;"></i> Save Changes
+            </button>
+        </form>
+    </div>
+
+    <!-- Quiz History -->
+    <div style="background: white; padding: 2rem; border-radius: 1.5rem; box-shadow: 0 4px 30px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; margin-bottom: 2.5rem;">
+        <h3 style="font-weight: 700; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-history" style="color: #f97316;"></i> Quiz History
+        </h3>
+        
+        <div class="history-list" style="display: flex; flex-direction: column; gap: 1rem;">
+            {% if attempts %}
+                {% for attempt in attempts %}
+                <div class="history-card {% if forloop.counter > 5 %}hidden-item{% endif %}" data-index="{{ forloop.counter }}">
+                    <div class="history-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="history-info">
+                        <h4 class="history-title">{{ attempt.quiz.title }}</h4>
+                        <p class="history-date"><i class="far fa-calendar-alt"></i> {{ attempt.submitted_at|date:"d/m/Y, h:i A" }}</p>
+                    </div>
+                    <div class="history-score-section">
+                        <div class="score-main">{{ attempt.score }}<span class="score-total">/{{ attempt.total_questions }}</span></div>
+                        <div class="score-percent" style="color: {% if attempt.percentage == 100 %}#10b981{% elif attempt.percentage >= 70 %}#0891b2{% elif attempt.percentage >= 30 %}#f59e0b{% else %}#ef4444{% endif %}; font-weight: 800;">
+                            {{ attempt.percentage }}% Score
+                        </div>
+                    </div>
+                    <a href="{% url 'quiz_result' attempt.id %}" class="history-view-btn">View</a>
+                </div>
+                {% endfor %}
+                
+                {% if attempts.count > 5 %}
+                <button onclick="toggleHistory(this)" style="width: 100%; padding: 0.85rem; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 1rem; color: #3b82f6; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+                    <span>See More</span> <i class="fas fa-chevron-down" style="margin-left: 0.4rem;"></i>
+                </button>
+                {% endif %}
+            {% else %}
+                <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                    <i class="fas fa-layer-group" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.2;"></i>
+                    <p style="font-weight: 600;">No quizzes taken yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Assignment History (NEW) -->
+    <div style="background: white; padding: 2rem; border-radius: 1.5rem; box-shadow: 0 4px 30px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; margin-bottom: 2.5rem;">
+        <h3 style="font-weight: 700; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-project-diagram" style="color: #10b981;"></i> Assignment History
+        </h3>
+        
+        <div class="history-list" style="display: flex; flex-direction: column; gap: 1rem;">
+            {% if assignment_submissions %}
+                {% for sub in assignment_submissions %}
+                <div class="history-card assignment-item {% if forloop.counter > 5 %}hidden-item{% endif %}" data-index="{{ forloop.counter }}">
+                    <div class="history-icon" style="color: #10b981;">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="history-info">
+                        <h4 class="history-title">{{ sub.assignment.title }}</h4>
+                        <p class="history-date"><i class="far fa-calendar-alt"></i> {{ sub.submitted_at|date:"d/m/Y, h:i A" }}</p>
+                    </div>
+                    <div class="history-score-section">
+                        {% if sub.is_graded %}
+                            <div class="score-main">{{ sub.marks }}<span class="score-total">/{{ sub.assignment.total_marks }}</span></div>
+                            <div class="score-percent" style="color: #10b981; font-weight: 800;">Graded</div>
+                        {% else %}
+                            <div class="score-main" style="color: #94a3b8;">--<span class="score-total">/{{ sub.assignment.total_marks }}</span></div>
+                            <div class="score-percent" style="color: #f59e0b; font-weight: 800;">Pending</div>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'assignment_detail' sub.assignment.id %}" class="history-view-btn" style="background: #10b981;">View</a>
+                </div>
+                {% endfor %}
+                
+                {% if assignment_submissions.count > 5 %}
+                <button onclick="toggleAssignments(this)" style="width: 100%; padding: 0.85rem; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 1rem; color: #10b981; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+                    <span>See More</span> <i class="fas fa-chevron-down" style="margin-left: 0.4rem;"></i>
+                </button>
+                {% endif %}
+            {% else %}
+                <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                    <i class="fas fa-file-invoice" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.2;"></i>
+                    <p style="font-weight: 600;">No assignments submitted yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <style>
+        .history-card {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            padding: 1.25rem;
+            background: #f8fafc;
+            border-radius: 1rem;
+            border: 1px solid #f1f5f9;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .history-card.hidden-item {
+            display: none;
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        .history-card.show-item {
+            display: flex;
+            animation: historyFadeIn 0.4s ease forwards;
+        }
+        @keyframes historyFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .history-card:hover { background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-color: #e2e8f0; }
+        
+        .history-icon {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+        
+        .history-info { flex: 1; min-width: 0; }
+        .history-title { font-weight: 700; color: #334155; font-size: 1rem; margin: 0 0 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .history-date { color: #94a3b8; font-size: 0.75rem; font-weight: 600; margin: 0; }
+        
+        .history-score-section { text-align: right; flex-shrink: 0; }
+        .score-main { font-size: 1.1rem; font-weight: 800; color: #1e293b; line-height: 1; margin-bottom: 0.25rem; }
+        .score-total { color: #94a3b8; font-size: 0.8rem; font-weight: 600; }
+        .score-percent { font-size: 0.75rem; font-weight: 700; }
+        
+        .history-view-btn {
+            text-decoration: none;
+            background: #3b82f6;
+            color: white;
+            padding: 0.5rem 1.1rem;
+            border-radius: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .history-view-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        @media (max-width: 600px) {
+            .history-card { gap: 0.75rem; padding: 1rem; }
+            .history-icon { width: 40px; height: 40px; font-size: 1.1rem; }
+            .history-title { font-size: 0.9rem; }
+            .history-date { font-size: 0.7rem; }
+            .score-main { font-size: 1rem; }
+            .score-percent { font-size: 0.7rem; }
+            .history-view-btn { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
+        }
+    </style>
+    </div>
+
+</div>
+
+<!-- Custom Remove Photo Modal -->
+<div id="removePhotoModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:1.5rem; padding:2rem; max-width:360px; width:90%; box-shadow:0 25px 60px rgba(0,0,0,0.2); text-align:center; animation: modalPop 0.3s cubic-bezier(0.34,1.56,0.64,1);">
+        <div style="width:60px; height:60px; background:#fee2e2; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem;">
+            <i class="fas fa-trash-alt" style="font-size:1.5rem; color:#ef4444;"></i>
+        </div>
+        <h3 style="font-weight:800; color:#1e293b; margin-bottom:0.5rem; font-size:1.1rem;">Remove Profile Photo?</h3>
+        <p style="color:#64748b; font-size:0.9rem; margin-bottom:1.75rem;">Your profile photo will be permanently deleted.</p>
+        <div style="display:flex; gap:0.75rem;">
+            <button onclick="document.getElementById('removePhotoModal').style.display='none'" style="flex:1; padding:0.75rem; border:2px solid #e2e8f0; border-radius:0.75rem; background:white; color:#64748b; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">Cancel</button>
+            <button onclick="document.getElementById('removePhotoForm').submit()" style="flex:1; padding:0.75rem; border:none; border-radius:0.75rem; background:#ef4444; color:white; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Yes, Remove</button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes modalPop {
+    from { opacity:0; transform:scale(0.85) translateY(20px); }
+    to { opacity:1; transform:scale(1) translateY(0); }
+}
+</style>
+
+<!-- Image Preview & Compression Script -->
+<script>
+function previewImage(input) {
+    if (!input.files || !input.files[0]) return;
+
+    const file = input.files[0];
+    
+    // 1. Show immediate preview (using original file for speed)
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const newImgUrl = e.target.result;
+        updateUIImages(newImgUrl);
+    };
+    reader.readAsDataURL(file);
+
+    // 2. Compress and Upload
+    compressAndSubmit(file);
+}
+
+function updateUIImages(url) {
+    const ids = ['avatarImg', 'sidebarAvatarImg', 'navbarAvatarImg'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.src = url;
+    });
+    
+    const letterIds = ['avatarLetter', 'sidebarAvatarLetter', 'navbarAvatarLetter'];
+    letterIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.innerHTML = `<img src="${url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+            el.style.background = 'transparent';
+            el.style.border = 'none';
+        }
+    });
+}
+
+async function compressAndSubmit(file) {
+    // Show a simple loading state
+    const label = document.querySelector('label[for="imgInput"]');
+    const originalIcon = label.innerHTML;
+    label.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    label.style.pointerEvents = 'none';
+
+    try {
+        const compressedFile = await compressImage(file);
+        
+        // Create a new form data to submit via fetch (cleanest way to send compressed blob)
+        const formData = new FormData(document.getElementById('profileForm'));
+        formData.set('profile_image', compressedFile, 'profile_image.jpg');
+
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+
+        if (response.ok) {
+            window.location.reload(); // Reload to show server-side changes and messages
+        } else {
+            console.error('Upload failed');
+            label.innerHTML = originalIcon;
+            label.style.pointerEvents = 'auto';
+            alert('Upload failed. Please try a smaller image.');
+        }
+    } catch (err) {
+        console.error('Compression error:', err);
+        label.innerHTML = originalIcon;
+        label.style.pointerEvents = 'auto';
+    }
+}
+
+function compressImage(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // Max dimensions 1024px
+                const MAX_SIZE = 1024;
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(blob => {
+                    resolve(blob);
+                }, 'image/jpeg', 0.7); // 70% quality JPEG
+            };
+            img.onerror = reject;
+        };
+        reader.onerror = reject;
+    });
+}
+
+function toggleHistory(btn) {
+    const hiddenCards = document.querySelectorAll('.history-card[data-index]');
+    const isShowingMore = btn.querySelector('span').innerText === 'See Less';
+    
+    hiddenCards.forEach(card => {
+        const index = parseInt(card.getAttribute('data-index'));
+        if (index > 5) {
+            if (isShowingMore) {
+                card.classList.remove('show-item');
+                card.classList.add('hidden-item');
+            } else {
+                card.classList.remove('hidden-item');
+                card.classList.add('show-item');
+            }
+        }
+    });
+    
+    btn.querySelector('span').innerText = isShowingMore ? 'See More' : 'See Less';
+    btn.querySelector('i').className = isShowingMore ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+}
+
+function toggleAssignments(btn) {
+    const items = document.querySelectorAll('.assignment-item');
+    const isShowingMore = btn.querySelector('span').innerText === 'See Less';
+    
+    items.forEach(item => {
+        const index = parseInt(item.getAttribute('data-index'));
+        if (index > 5) {
+            if (isShowingMore) {
+                item.classList.remove('show-item');
+                item.classList.add('hidden-item');
+            } else {
+                item.classList.remove('hidden-item');
+                item.classList.add('show-item');
+            }
+        }
+    });
+    
+    btn.querySelector('span').innerText = isShowingMore ? 'See More' : 'See Less';
+    btn.querySelector('i').className = isShowingMore ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+}
+</script>
+
+
+<!-- Mobile Adjustments -->
+<style>
+    @media (max-width: 600px) {
+        .profile-container { padding: 1rem 0.5rem !important; }
+        .profile-hero { 
+            flex-direction: column; 
+            text-align: center; 
+            padding: 2.5rem 1.5rem !important; 
+            gap: 1.5rem !important;
+        }
+        .info-section { 
+            text-align: center !important; 
+            min-width: unset !important;
+        }
+        .info-section h1 { font-size: 1.5rem !important; }
+        .info-section p { font-size: 0.9rem !important; }
+        
+        .stats-grid { 
+            grid-template-columns: 1fr 1fr !important; 
+            gap: 0.75rem !important; 
+            margin-bottom: 2rem !important;
+        }
+        .p-stat-card { padding: 1rem !important; }
+        .p-stat-card div:last-child { font-size: 1.25rem !important; }
+        
+        .achievements-section { padding: 1.5rem !important; }
+        .achievement-card { padding: 1rem 0.5rem !important; }
+        .badge-icon-wrapper { width: 60px !important; height: 60px !important; font-size: 1.5rem !important; }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% block content %}
+<div class="admin-v2-container" style="max-width: 900px; margin: 0 auto;">
+    
+    <!-- Header V2 -->
+    <div class="admin-header-v2" style="text-align: center;">
+        <h1 class="gradient-text" style="font-size: 2.5rem; margin-bottom: 0.5rem;">Assessment Feedback</h1>
+        <p>Comprehensive breakdown of your performance in <strong>{{ attempt.quiz.title }}</strong></p>
+    </div>
+
+    <div class="card-v2 slide-up" style="padding: 3rem; text-align: center; margin-bottom: 3rem; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px);">
+        <!-- Skill Meter V2 -->
+        <div style="width: 180px; height: 180px; margin: 0 auto 2.5rem; position: relative; display: flex; align-items: center; justify-content: center;">
+            <svg style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                <circle cx="90" cy="90" r="80" fill="none" stroke="#f1f5f9" stroke-width="12" />
+                <circle cx="90" cy="90" r="80" fill="none" stroke="var(--admin-primary)" stroke-width="12" 
+                    stroke-dasharray="502.6" stroke-dashoffset="{{ 502.6|add:percentage|add:percentage|add:percentage|add:percentage|add:percentage|first }}" 
+                    style="stroke-dashoffset: calc(502.6 - (502.6 * {{ percentage }}) / 100); transition: stroke-dashoffset 1s ease-out; stroke-linecap: round;" />
+            </svg>
+            <div style="position: absolute; text-align: center;">
+                <div style="font-size: 2.5rem; font-weight: 900; color: var(--text-primary); line-height: 1;">{{ percentage|floatformat:0 }}<span style="font-size: 1.25rem; vertical-align: super;">%</span></div>
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px; letter-spacing: 1px;">Accuracy</div>
+            </div>
+        </div>
+
+        <h2 style="font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">{{ attempt.student_name }}</h2>
+        
+        <div style="display: flex; justify-content: center; gap: 3rem; margin: 2rem 0;">
+            <div style="text-align: center;">
+                <div style="font-size: 1.75rem; font-weight: 800; color: #10b981;">{{ attempt.score }}</div>
+                <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Correct</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 1.75rem; font-weight: 800; color: var(--admin-primary);">{{ attempt.total_questions }}</div>
+                <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Total Items</div>
+            </div>
+        </div>
+
+        <div class="v2-badge {% if percentage >= 80 %}badge-success-v2{% elif percentage >= 40 %}badge-info-v2{% else %}badge-danger-v2{% endif %}" style="padding: 1rem 2rem; font-size: 1rem; border-radius: 1rem;">
+            {% if percentage >= 80 %}
+                🎉 Outstanding Performance!
+            {% elif percentage >= 60 %}
+                👍 Great Work!
+            {% elif percentage >= 40 %}
+                📚 Good Effort!
+            {% else %}
+                💪 Keep Practicing!
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Detailed Analysis V2 -->
+    <div style="margin-bottom: 4rem;">
+        <h2 style="font-weight: 800; color: var(--text-primary); margin-bottom: 2rem; display: flex; align-items: center; gap: 12px;">
+            <i class="fas fa-microscope" style="color: var(--admin-primary);"></i> Itemized Analysis
+        </h2>
+
+        {% for item in questions_with_answers %}
+        <div class="card-v2" style="margin-bottom: 1.5rem; padding: 2.5rem; border-left: 6px solid {% if item.is_correct %}#10b981{% else %}#ef4444{% endif %}; background: {% if item.is_correct %}rgba(16, 185, 129, 0.02){% else %}rgba(239, 68, 68, 0.02){% endif %};">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Item #{{ forloop.counter }}</div>
+                <div class="v2-badge {% if item.is_correct %}badge-success-v2{% else %}badge-danger-v2{% endif %}" style="font-size: 0.7rem;">
+                    {% if item.is_correct %}<i class="fas fa-check"></i> CORRECT{% else %}<i class="fas fa-times"></i> INCORRECT{% endif %}
+                </div>
+            </div>
+
+            <h3 style="font-weight: 800; color: var(--text-primary); font-size: 1.2rem; line-height: 1.5; margin-bottom: 2rem;">{{ item.question.text }}</h3>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem;">
+                {% for option in item.question.options.all %}
+                <div style="padding: 1.25rem; border-radius: 1rem; border: 1.5px solid 
+                    {% if option.is_correct %}#10b981{% elif item.student_answer.selected_option.id == option.id %}#ef4444{% else %}#f1f5f9{% endif %}; 
+                    background: {% if option.is_correct %}rgba(16, 185, 129, 0.08){% elif item.student_answer.selected_option.id == option.id %}rgba(239, 68, 68, 0.05){% else %}white{% endif %};
+                    display: flex; align-items: center; justify-content: space-between;">
+                    
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+                            background: {% if option.is_correct %}#10b981{% elif item.student_answer.selected_option.id == option.id %}#ef4444{% else %}#f1f5f9{% endif %};
+                            color: {% if option.is_correct or item.student_answer.selected_option.id == option.id %}white{% else %}var(--text-secondary){% endif %};">
+                            {% if option.is_correct %}✓{% elif item.student_answer.selected_option.id == option.id %}✗{% else %}{{ forloop.counter }}{% endif %}
+                        </div>
+                        <span style="font-weight: 700; font-size: 0.95rem; color: {% if option.is_correct %}#065f46{% elif item.student_answer.selected_option.id == option.id %}#991b1b{% else %}var(--text-secondary){% endif %};">
+                            {{ option.text }}
+                        </span>
+                    </div>
+
+                    {% if option.is_correct %}
+                    <span style="font-size: 0.65rem; font-weight: 800; color: #10b981; text-transform: uppercase;">Solution key</span>
+                    {% elif item.student_answer.selected_option.id == option.id %}
+                    <span style="font-size: 0.65rem; font-weight: 800; color: #ef4444; text-transform: uppercase;">Your pick</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                {% if not item.student_answer %}
+                <div style="padding: 1.25rem; background: #fffbeb; border: 1.5px dashed #f59e0b; border-radius: 1rem; color: #92400e; font-weight: 700; font-size: 0.9rem; text-align: center;">
+                    <i class="fas fa-exclamation-triangle"></i> This item was skipped
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin-bottom: 5rem;">
+        <a href="/" class="tab-btn-v2 active" style="text-decoration: none; padding: 1rem 3rem; font-size: 1rem; display: inline-flex; align-items: center; gap: 12px;">
+            <i class="fas fa-arrow-left"></i> Return to Terminal
+        </a>
+    </div>
+</div>
+{% endblock %}

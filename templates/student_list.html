@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student List | Liquid_Tripple_R{% endblock %}
+
+{% block content %}
+<div class="welcome-section" style="margin-bottom: 2.5rem;">
+    <h1 style="font-weight: 700; letter-spacing: -0.5px; color: #1e293b;">Class Directory 🎓</h1>
+    <p style="color: #64748b; font-size: 1.05rem;">
+        Community of <span id="student-count" style="font-weight: 700; color: #3b82f6;">{{ students|length }}</span> students in 
+        <span style="font-weight: 700; color: #3b82f6;">Liquid_Tripple_R</span>
+    </p>
+</div>
+
+<!-- Search Section -->
+<div class="search-container" style="background: white; padding: 1.25rem; border-radius: 1.5rem; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; box-sizing: border-box;">
+    <form id="studentSearchForm" method="GET" action="{% url 'student_list' %}" style="width: 100%; position: relative; box-sizing: border-box;">
+        <i class="fas fa-search" style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: #3b82f6;"></i>
+        <input type="text" name="search" id="studentSearchInput" placeholder="Search by name or Student ID..." value="{{ search_query }}" 
+               autocomplete="off"
+               style="width: 100%; padding: 0.85rem 1rem 0.85rem 3.25rem; border: 2px solid #f1f5f9; border-radius: 1rem; font-size: 1rem; transition: all 0.3s ease; background: #f8fafc; font-weight: 500; outline: none; box-sizing: border-box;">
+    </form>
+    <div style="display: flex; justify-content: flex-start; padding-left: 0.5rem;">
+        <div class="results-badge" style="background: #eff6ff; color: #3b82f6; padding: 0.6rem 1rem; border-radius: 10px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 8px; white-space: nowrap; border: 1px solid #dbeafe; box-shadow: 0 2px 5px rgba(59,130,246,0.05);">
+            <i class="fas fa-user-graduate"></i> 
+            <span><span id="student-count-dynamic">{{ students|length }}</span> <span class="hide-on-mobile">Students Registered</span></span>
+        </div>
+    </div>
+</div>
+
+<!-- Student Table -->
+<div style="background: white; border-radius: 1.25rem; box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; overflow: hidden;">
+    <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8fafc;">
+                    <th class="mobile-hide" style="padding: 1.25rem 1rem; text-align: center; color: #64748b; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; width: 60px;">SL</th>
+                    <th style="padding: 1.25rem 1rem; text-align: left; color: #64748b; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;">Information</th>
+                    <th class="mobile-compact-hide" style="padding: 1.25rem 1rem; text-align: center; color: #64748b; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; width: 120px;">ID</th>
+                    <th class="mobile-hide" style="padding: 1.25rem 1rem; text-align: left; color: #64748b; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; width: 150px;">Join Date</th>
+                    <th style="padding: 1.25rem 1rem; text-align: right; color: #64748b; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; width: 130px;">Status</th>
+                    {% if user.is_staff %}
+                    <th style="padding: 1.25rem 1rem; text-align: center; color: #64748b; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; width: 80px;">Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody id="student-table-body">
+                {% for profile in students %}
+                <tr style="border-bottom: 1px solid #f8fafc; transition: all 0.3s ease; cursor: default; {% if user == profile.user %}background: #f0f7ff; border-left: 4px solid #3b82f6;{% endif %}" 
+                    {% if user != profile.user %}onmouseover="this.style.background='#fcfdff';" onmouseout="this.style.background='white';"{% else %}onmouseover="this.style.background='#e6f1ff';" onmouseout="this.style.background='#f0f7ff';"{% endif %}>
+                    <td class="mobile-hide" style="padding: 1.25rem 1rem; text-align: center;">
+                        <span style="display: inline-flex; width: 28px; height: 28px; background: {% if user == profile.user %}#3b82f6{% else %}#f1f5f9{% endif %}; border-radius: 50%; align-items: center; justify-content: center; color: {% if user == profile.user %}white{% else %}#475569{% endif %}; font-weight: 700; font-size: 0.75rem; font-family: monospace;">
+                            {{ forloop.counter|stringformat:"02d" }}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit;">
+                            {% if user.is_staff %}
+                            <a href="{% url 'admin_student_progress' profile.user.id %}" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit;">
+                            {% endif %}
+                            
+                            <div style="position: relative; flex-shrink: 0;">
+                                {% if profile.profile_image %}
+                                    <img src="{{ profile.profile_image.url }}" style="width: 42px; height: 42px; border-radius: 12px; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                                {% else %}
+                                    <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem;">
+                                        {{ profile.get_avatar_letter }}
+                                    </div>
+                                {% endif %}
+                                {% if profile.is_online %}
+                                    <span style="position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; background: #22c55e; border: 2px solid white; border-radius: 50%;"></span>
+                                {% endif %}
+                            </div>
+                            <div style="overflow: hidden;">
+                                <div style="color: #1e293b; font-weight: 700; font-size: 0.95rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 0.5rem;">
+                                    {{ profile.user.get_full_name|default:profile.user.username }}
+                                    {% if user == profile.user %}
+                                        <span style="background: #3b82f6; color: white; padding: 0.1rem 0.5rem; border-radius: 0.4rem; font-size: 0.65rem; text-transform: uppercase;">You</span>
+                                    {% endif %}
+                                </div>
+                                <div class="mobile-email-hide" style="color: #64748b; font-size: 0.75rem; margin-top: 0.1rem;">
+                                    {% if user.is_staff or user == profile.user %}
+                                        {{ profile.user.email }}
+                                    {% else %}
+                                        {{ profile.get_masked_email }}
+                                    {% endif %}
+                                </div>
+                                <div class="mobile-show-id" style="display: none; color: #3b82f6; font-size: 0.7rem; font-weight: 700; margin-top: 2px;">ID: #{{ profile.student_id|default:"-" }}</div>
+                            </div>
+                            
+                            {% if user.is_staff %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="mobile-compact-hide" style="padding: 1.25rem 1rem; text-align: center;">
+                        <span style="background: #eff6ff; color: #2563eb; padding: 0.3rem 0.75rem; border-radius: 0.5rem; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">
+                            #{{ profile.student_id|default:"-" }}
+                        </span>
+                    </td>
+                    <td class="mobile-hide" style="padding: 1.25rem 1rem;">
+                        <div style="color: #334155; font-size: 0.85rem; font-weight: 600;">{{ profile.created_at|date:"d/m/Y" }}</div>
+                    </td>
+                    <td style="padding: 1.25rem 1rem; text-align: right;">
+                        {% if profile.is_online %}
+                            <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: #f0fdf4; color: #166534; padding: 0.3rem 0.75rem; border-radius: 2rem; border: 1px solid #bbf7d0;">
+                                <span style="width: 7px; height: 7px; background: #22c55e; border-radius: 50%;"></span>
+                                <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">Active</span>
+                            </div>
+                        {% else %}
+                            <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: #f8fafc; color: #64748b; padding: 0.3rem 0.75rem; border-radius: 2rem; border: 1px solid #e2e8f0;">
+                                <span style="font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                    {% if profile.last_activity %}
+                                        {{ profile.last_activity|timesince }}
+                                    {% else %}
+                                        Offline
+                                    {% endif %}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </td>
+                    {% if user.is_staff %}
+                    <td style="padding: 1.25rem 1rem; text-align: center;">
+                        {% if user != profile.user %}
+                        <button onclick="confirmDelete('{{ profile.user.id }}', '{{ profile.user.get_full_name|default:profile.user.username }}')" 
+                                style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0.5rem; border-radius: 0.5rem; transition: all 0.2s;"
+                                onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'"
+                                title="Remove Student">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        {% else %}
+                        <span style="color: #94a3b8; font-size: 0.8rem; font-style: italic;">Self</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="padding: 5rem 3rem; text-align: center; color: #64748b;">
+                        <div style="margin-bottom: 1.5rem;">
+                            <i class="fas fa-search" style="font-size: 3rem; color: #e2e8f0;"></i>
+                        </div>
+                        <h3 style="margin-bottom: 0.5rem; color: #475569;">No results found</h3>
+                        <p style="font-size: 0.9rem;">We couldn't find any students matching your search criteria.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        .mobile-hide { display: none !important; }
+        .mobile-email-hide { display: none !important; }
+        .mobile-show-id { display: block !important; }
+
+        /* Compact table padding for mobile */
+        table td, table th { padding: 1rem 0.75rem !important; }
+
+        /* Shrink avatar */
+        table td img, table td > div > div[style*="42px"] {
+            width: 36px !important;
+            height: 36px !important;
+        }
+
+        /* Smaller name text */
+        table td div[style*="font-weight: 700"] {
+            font-size: 0.85rem !important;
+        }
+
+        /* Status pill - compact */
+        table td div[style*="border-radius: 2rem"] {
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.65rem !important;
+        }
+
+        /* Truncate long status text like "2 days, 9 hours" */
+        table td div[style*="border-radius: 2rem"] span {
+            max-width: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-block;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .mobile-compact-hide { display: none !important; }
+    }
+
+    /* Custom Scrollbar for the table container */
+    div[style*="overflow-x: auto"]::-webkit-scrollbar {
+        height: 5px;
+    }
+    div[style*="overflow-x: auto"]::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+    div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+    div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+</style>
+
+<script>
+    // Live Search Logic (Debounced Form Submit)
+    const searchInput = document.getElementById('studentSearchInput');
+    const searchForm = document.getElementById('studentSearchForm');
+    let typingTimer;
+    const doneTypingInterval = 400;
+
+    searchInput.addEventListener('input', () => {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            searchForm.submit();
+        }, doneTypingInterval);
+    });
+
+    // Keep focus and cursor at the end on reload
+    if (searchInput.value) {
+        searchInput.focus();
+        const val = searchInput.value;
+        searchInput.value = '';
+        searchInput.value = val;
+    }
+
+    async function confirmDelete(userId, name) {
+        const confirmed = await window.customConfirm(
+            'Remove Student?', 
+            `Are you sure you want to remove ${name} from the directory? This action will permanently delete all their data.`
+        );
+
+        if (confirmed) {
+            fetch(`/student/${userId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Could not delete student.'));
+                }
+            })
+            .catch(err => {
+                console.error('Delete error:', err);
+                alert('Something went wrong!');
+            });
+        }
+    }
+</script>
+{% endblock %}

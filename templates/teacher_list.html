@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+
+{% block title %}Faculty Members | Liquid_Triple_R{% endblock %}
+
+{% block extra_css %}
+<style>
+    .teacher-list-container {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    .search-wrapper {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1.25rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .search-input-group {
+        flex: 1;
+        min-width: 250px;
+        position: relative;
+    }
+
+    .search-input-group i {
+        position: absolute;
+        left: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+
+    .search-input-group input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 3rem;
+        border: 2px solid #f1f5f9;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .search-input-group input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+
+    .teacher-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
+    }
+
+    .teacher-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 1.5rem;
+        padding: 2rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .teacher-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .teacher-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .teacher-card:hover::before {
+        opacity: 1;
+    }
+
+    .status-badge {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .teacher-avatar-wrapper {
+        margin-bottom: 1.5rem;
+        position: relative;
+        width: 80px;
+        height: 80px;
+    }
+
+    .teacher-avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 1.25rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #3b82f6;
+        border: 2px solid white;
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1);
+    }
+
+    .teacher-info h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+
+    .designation {
+        color: #3b82f6;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .department {
+        color: #64748b;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 1.25rem;
+    }
+
+    .info-list {
+        margin-top: auto;
+        padding-top: 1.25rem;
+        border-top: 1px dashed #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.85rem;
+        color: #475569;
+    }
+
+    .info-item i {
+        width: 16px;
+        color: #94a3b8;
+    }
+
+    .phone-copy {
+        cursor: pointer;
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .phone-copy:hover {
+        color: #3b82f6;
+    }
+
+    .action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0.65rem;
+        border-radius: 0.75rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-whatsapp {
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #bbf7d0;
+    }
+
+    .btn-whatsapp:hover {
+        background: #d1fae5;
+        transform: scale(1.02);
+    }
+
+    .btn-message {
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #bfdbfe;
+    }
+
+    .btn-message:hover {
+        background: #dbeafe;
+        transform: scale(1.02);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 1.5rem;
+        grid-column: 1 / -1;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="teacher-list-container">
+    <div class="page-header" style="text-align: left; margin-bottom: 2rem;">
+        <h1 style="font-weight: 800; font-size: 2.25rem; background: linear-gradient(135deg, #1e293b, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Faculty Directory</h1>
+        <p style="color: #64748b; font-size: 1.1rem;">Connect with our dedicated academic professionals and mentors.</p>
+    </div>
+
+    <!-- Search Section -->
+    <div class="search-wrapper-container" style="margin-bottom: 2.5rem;">
+        <div class="search-wrapper" style="background: white; padding: 1rem; border-radius: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; flex-wrap: wrap;">
+            <form id="searchForm" action="{% url 'teacher_list' %}" method="GET" class="search-input-group" style="flex: 1; min-width: 280px; position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: #3b82f6;"></i>
+                <input type="text" id="searchInput" name="search" placeholder="Search by name, designation, or department..." value="{{ search_query }}" style="width: 100%; padding: 0.85rem 1rem 0.85rem 3.25rem; border: 2px solid #f1f5f9; border-radius: 1rem; font-size: 1rem; transition: all 0.3s ease; background: #f8fafc; font-weight: 500; outline: none; box-sizing: border-box;">
+            </form>
+            <div class="results-badge" style="background: #eff6ff; color: #3b82f6; padding: 0.75rem 1.25rem; border-radius: 12px; font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; gap: 10px; white-space: nowrap; border: 1px solid #dbeafe; flex-shrink: 0;">
+                <i class="fas fa-users-cog"></i> 
+                <span>{{ teachers|length }} <span class="hide-on-mobile">Faculty Found</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teacher Grid -->
+    <div class="teacher-grid" style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 2.5rem;">
+        {% for teacher in teachers %}
+        <div class="teacher-card" style="background: white; border-radius: 1.5rem; padding: 2.5rem 2rem; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0,0,0,0.03); position: relative; border-top: 4px solid #3b82f6;">
+            <!-- Status Badge -->
+            <div class="status-badge" style="position: absolute; top: 1.5rem; right: 1.5rem; background: #f8fafc; padding: 4px 12px; border-radius: 20px; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; color: #475569; border: 1px solid #f1f5f9;">
+                <span class="status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: {% if teacher.status == 'Online' %}#22c55e{% elif teacher.status == 'In Class' %}#f59e0b{% else %}#94a3b8{% endif %};"></span>
+                {{ teacher.status }}
+            </div>
+
+            <!-- Avatar -->
+            <div style="margin-bottom: 2rem;">
+                {% if teacher.user.student_profile.profile_image %}
+                    <img src="{{ teacher.user.student_profile.profile_image.url }}" alt="{{ teacher.name }}" style="width: 100px; height: 100px; border-radius: 1.25rem; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 3px solid #f8fafc;">
+                {% else %}
+                    <div style="width: 100px; height: 100px; border-radius: 1.25rem; background: #eff6ff; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #3b82f6; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 3px solid #f8fafc;">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Basic Info -->
+            <div style="margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.5rem; font-weight: 800; color: #1e293b; margin: 0 0 0.25rem;">{{ teacher.name }}</h3>
+                <div style="color: #3b82f6; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.75rem;">{{ teacher.designation }}</div>
+                <div style="color: #64748b; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                    <i class="fas fa-building" style="color: #94a3b8;"></i> {{ teacher.department }}
+                </div>
+            </div>
+
+            <!-- Detailed Info -->
+            <div style="padding-top: 1.5rem; border-top: 1px dashed #e2e8f0; display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; gap: 12px; color: #475569; font-size: 0.9rem; font-weight: 500;">
+                    <i class="fas fa-envelope" style="width: 16px; color: #94a3b8;"></i>
+                    <span>{{ teacher.email }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; color: #475569; font-size: 0.9rem; font-weight: 500;">
+                    <i class="fas fa-phone-alt" style="width: 16px; color: #94a3b8;"></i>
+                    <span class="phone-copy" onclick="copyPhone('{{ teacher.phone }}', this)" style="cursor: pointer;">
+                        {{ teacher.phone }} <i class="far fa-copy" style="font-size: 0.75rem; margin-left: 4px; opacity: 0.5;"></i>
+                    </span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; color: #475569; font-size: 0.9rem; font-weight: 500;">
+                    <i class="fas fa-clock" style="width: 16px; color: #94a3b8;"></i>
+                    <span>{{ teacher.office_hours }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; color: #475569; font-size: 0.9rem; font-weight: 500;">
+                    <i class="fas fa-id-badge" style="width: 16px; color: #94a3b8;"></i>
+                    <span style="background: #f1f5f9; padding: 2px 10px; border-radius: 6px; font-weight: 700; color: #64748b; font-size: 0.8rem;">ID: T-{{ teacher.id }}</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 0.75rem;">
+                <a href="https://wa.me/88{{ teacher.phone }}" target="_blank" style="text-decoration:none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0.8rem; border-radius: 0.75rem; font-size: 0.9rem; font-weight: 700; transition: all 0.2s; background: #ecfdf5; color: #059669; border: 1px solid #bbf7d0;">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+                <button onclick="customAlert('Messaging', 'Messaging system is coming soon!', 'info')" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0.8rem; border-radius: 0.75rem; font-size: 0.9rem; font-weight: 700; transition: all 0.2s; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; cursor: pointer;">
+                    <i class="far fa-paper-plane"></i> Message
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <img src="https://cdni.iconscout.com/illustration/premium/thumb/no-search-found-6252086-5121367.png" alt="No teachers found" style="width: 200px; margin-bottom: 2rem;">
+            <h3>No faculty members found</h3>
+            <p style="color: #64748b;">We couldn't find anyone matching "{{ search_query }}". Try a different keyword.</p>
+            <a href="{% url 'teacher_list' %}" class="btn btn-primary mt-3" style="width: auto;">View All Faculty</a>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script>
+    function copyPhone(number, element) {
+        const fullNumber = '+88' + number;
+        navigator.clipboard.writeText(fullNumber).then(() => {
+            const originalHTML = element.innerHTML;
+            element.innerHTML = '<span style="color:#22c55e;">Copied! +88' + number + '</span>';
+            element.style.pointerEvents = 'none';
+            
+            setTimeout(() => {
+                element.innerHTML = originalHTML;
+                element.style.pointerEvents = 'auto';
+            }, 2000);
+        });
+    }
+
+    // Live Search Logic
+    const searchInput = document.getElementById('searchInput');
+    const searchForm = document.getElementById('searchForm');
+    let typingTimer;
+    const doneTypingInterval = 1000; // Wait for 1 second after typing stops
+
+    searchInput.addEventListener('input', () => {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            searchForm.submit();
+        }, doneTypingInterval);
+    });
+
+    // Keep focus and cursor at the end on reload
+    if (searchInput.value) {
+        searchInput.focus();
+        const val = searchInput.value;
+        searchInput.value = '';
+        searchInput.value = val;
+    }
+</script>
+{% endblock %}

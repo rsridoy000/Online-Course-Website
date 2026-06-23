@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Portal | Liquid_Triple_R{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-auth-wrapper {
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at top right, #eef2ff 0%, #f1f5f9 50%, #f8fafc 100%);
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Abstract shapes for background depth */
+    .admin-auth-wrapper::before {
+        content: '';
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05));
+        border-radius: 50%;
+        top: -100px;
+        right: -100px;
+        z-index: 0;
+    }
+
+    .admin-login-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 2rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 450px;
+        padding: 3rem;
+        position: relative;
+        z-index: 1;
+        animation: cardAppear 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes cardAppear {
+        from { opacity: 0; transform: translateY(40px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .admin-login-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .admin-logo-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #1e293b, #334155);
+        color: white;
+        border-radius: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 10px 20px rgba(30, 41, 59, 0.2);
+    }
+
+    .admin-login-header h1 {
+        font-size: 1.85rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
+    }
+
+    .admin-login-header p {
+        color: #64748b;
+        font-size: 0.95rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.5rem;
+        margin-left: 0.25rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-wrapper i {
+        position: absolute;
+        left: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.875rem 1rem 0.875rem 3rem;
+        background: white;
+        border: 2px solid #f1f5f9;
+        border-radius: 1rem;
+        font-size: 1rem;
+        color: #1e293b;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .btn-admin-login {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        color: white;
+        border: none;
+        border-radius: 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(30, 41, 59, 0.2);
+    }
+
+    .btn-admin-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(30, 41, 59, 0.15);
+        background: linear-gradient(135deg, #334155 0%, #475569 100%);
+    }
+
+    .btn-admin-login:active {
+        transform: translateY(0);
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    .back-link {
+        color: #64748b;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: #3b82f6;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .alert-error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-auth-wrapper">
+    <div class="admin-login-card">
+        <div class="admin-login-header">
+            <div class="admin-logo-icon">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <h1>Admin Portal</h1>
+            <p>Enter your credentials to manage the workspace</p>
+        </div>
+
+        {% if error %}
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+        {% endif %}
+
+        <form method="post" class="login-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        placeholder="Enter your username"
+                        required
+                        autofocus
+                        class="form-input"
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-key"></i>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Enter your password"
+                        required
+                        class="form-input"
+                    >
+                </div>
+            </div>
+
+            <button type="submit" class="btn-admin-login">
+                Sign In
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <a href="/login/" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Back to Student Login
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

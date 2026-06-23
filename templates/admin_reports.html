@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Result Reports | Admin Panel{% endblock %}
+
+{% block content %}
+<div style="padding: 1.5rem; max-width: 1200px; margin: 0 auto;">
+
+    <!-- Page Header -->
+    <div style="margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 1.85rem; font-weight: 800; color: #1e293b; margin: 0; letter-spacing: -0.5px;">
+                📈 Result Reports
+            </h1>
+            <p style="color: #64748b; font-size: 0.95rem; margin-top: 0.3rem;">
+                Generate and download automated PDF reports for student submissions
+            </p>
+        </div>
+    </div>
+
+    <!-- Reports Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem;">
+        
+        <!-- Quizzes Section -->
+        <div style="background: white; border-radius: 1.25rem; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <div style="padding: 1.25rem; border-bottom: 1px solid #f1f5f9; background: #f8fafc; display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-list-check"></i>
+                </div>
+                <h2 style="font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 0;">Quiz Reports</h2>
+            </div>
+            
+            <div style="padding: 0;">
+                {% if quizzes %}
+                    {% for quiz in quizzes %}
+                    <div style="padding: 1.25rem; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <h3 style="font-size: 0.95rem; font-weight: 700; color: #334155; margin: 0;">{{ quiz.title }}</h3>
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.4rem;">
+                                {% if quiz.is_expired %}
+                                    <span style="font-size: 0.75rem; color: #ef4444; background: #fee2e2; padding: 2px 8px; border-radius: 99px; font-weight: 600;">Expired</span>
+                                {% else %}
+                                    <span style="font-size: 0.75rem; color: #22c55e; background: #dcfce7; padding: 2px 8px; border-radius: 99px; font-weight: 600;">Active</span>
+                                {% endif %}
+                                <span style="font-size: 0.75rem; color: #94a3b8;"><i class="far fa-calendar-alt"></i> {{ quiz.created_at|date:"d/m/Y" }}</span>
+                                <span style="font-size: 0.75rem; color: #6366f1; font-weight: 600;"><i class="fas fa-users"></i> {{ quiz.attempts.all|length }} Submissions</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            {% with report=quiz_reports|get_item:quiz.id %}
+                                {% if report %}
+                                    <a href="{{ report.report_file.url }}" target="_blank" download
+                                       style="display: inline-flex; align-items: center; gap: 6px; padding: 0.6rem 1rem; background: #2563eb; color: white; border-radius: 0.75rem; font-size: 0.85rem; font-weight: 700; text-decoration: none; transition: all 0.2s; box-shadow: 0 4px 12px rgba(37,99,235,0.2);"
+                                       onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 15px rgba(37,99,235,0.3)';"
+                                       onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(37,99,235,0.2)';">
+                                        <i class="fas fa-file-pdf"></i> Download
+                                    </a>
+                                {% else %}
+                                    <a href="?generate_type=quiz&generate_id={{ quiz.id }}" 
+                                       style="display: inline-flex; align-items: center; gap: 6px; padding: 0.6rem 1rem; background: white; border: 1.5px solid #e2e8f0; color: #64748b; border-radius: 0.75rem; font-size: 0.85rem; font-weight: 700; text-decoration: none; transition: all 0.2s;"
+                                       onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#3b82f6'; this.style.color='#3b82f6';"
+                                       onmouseout="this.style.background='white'; this.style.borderColor='#e2e8f0'; this.style.color='#64748b';">
+                                        <i class="fas fa-magic"></i> Generate
+                                    </a>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="padding: 3rem; text-align: center; color: #94a3b8;">
+                        <i class="fas fa-folder-open" style="font-size: 2rem; opacity: 0.3; margin-bottom: 0.75rem; display: block;"></i>
+                        No quizzes found
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Assignments Section -->
+        <div style="background: white; border-radius: 1.25rem; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <div style="padding: 1.25rem; border-bottom: 1px solid #f1f5f9; background: #f8fafc; display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <h2 style="font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 0;">Assignment Reports</h2>
+            </div>
+            
+            <div style="padding: 0;">
+                {% if assignments %}
+                    {% for ass in assignments %}
+                    <div style="padding: 1.25rem; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <h3 style="font-size: 0.95rem; font-weight: 700; color: #334155; margin: 0;">{{ ass.title }}</h3>
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.4rem;">
+                                <span style="font-size: 0.75rem; color: #64748b;"><i class="far fa-calendar-alt"></i> Created: {{ ass.created_at|date:"d/m/Y" }}</span>
+                                <span style="font-size: 0.75rem; color: #ef4444; font-weight: 600;"><i class="far fa-clock"></i> Deadline: {{ ass.deadline|date:"d/m/Y" }}</span>
+                                <span style="font-size: 0.75rem; color: #6366f1; font-weight: 600;"><i class="fas fa-users"></i> {{ ass.submissions.all|length }} Submissions</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            {% with report=assignment_reports|get_item:ass.id %}
+                                {% if report %}
+                                    <a href="{{ report.report_file.url }}" target="_blank" download
+                                       style="display: inline-flex; align-items: center; gap: 6px; padding: 0.6rem 1rem; background: #d97706; color: white; border-radius: 0.75rem; font-size: 0.85rem; font-weight: 700; text-decoration: none; transition: all 0.2s; box-shadow: 0 4px 12px rgba(217,119,6,0.2);"
+                                       onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 15px rgba(217,119,6,0.3)';"
+                                       onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(217,119,6,0.2)';">
+                                        <i class="fas fa-file-pdf"></i> Download
+                                    </a>
+                                {% else %}
+                                    <a href="?generate_type=assignment&generate_id={{ ass.id }}" 
+                                       style="display: inline-flex; align-items: center; gap: 6px; padding: 0.6rem 1rem; background: white; border: 1.5px solid #e2e8f0; color: #64748b; border-radius: 0.75rem; font-size: 0.85rem; font-weight: 700; text-decoration: none; transition: all 0.2s;"
+                                       onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#f59e0b'; this.style.color='#f59e0b';"
+                                       onmouseout="this.style.background='white'; this.style.borderColor='#e2e8f0'; this.style.color='#64748b';">
+                                        <i class="fas fa-magic"></i> Generate
+                                    </a>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="padding: 3rem; text-align: center; color: #94a3b8;">
+                        <i class="fas fa-folder-open" style="font-size: 2rem; opacity: 0.3; margin-bottom: 0.75rem; display: block;"></i>
+                        No assignments found
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

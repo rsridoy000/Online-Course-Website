@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Available Quizzes | Liquid_Tripple_R{% endblock %}
+
+{% block content %}
+
+<!-- ══ Hero ══ -->
+<div style="background:linear-gradient(135deg,#1e293b 0%,#334155 100%);
+            border-radius:1.5rem;padding:2rem 2.5rem;color:white;
+            margin-bottom:2rem;position:relative;overflow:hidden;
+            box-shadow:0 10px 30px rgba(0,0,0,0.12);">
+    <div class="qz-hero-inner" style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+        <div>
+            <h1 style="font-size:1.9rem;font-weight:800;margin:0 0 0.25rem;letter-spacing:-0.5px;">📝 Available Quizzes</h1>
+            <p style="opacity:.65;font-size:0.88rem;margin:0;">Select a quiz to test your knowledge</p>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);
+                    padding:0.7rem 1.4rem;border-radius:1rem;text-align:center;backdrop-filter:blur(8px);">
+            <div style="font-size:1.75rem;font-weight:800;line-height:1;">{{ quiz_list|length }}</div>
+            <div style="font-size:0.68rem;opacity:.55;text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-top:2px;">Quizzes</div>
+        </div>
+    </div>
+    <div style="position:absolute;top:-60px;right:-60px;width:220px;height:220px;background:rgba(59,130,246,0.18);border-radius:50%;pointer-events:none;"></div>
+    <div style="position:absolute;bottom:-40px;left:25%;width:130px;height:130px;background:rgba(139,92,246,0.12);border-radius:50%;pointer-events:none;"></div>
+</div>
+
+
+{% if quiz_list %}
+
+<div class="qz-grid">
+{% for item in quiz_list %}
+
+{% if item.is_submitted %}
+<div class="qz-card qz-done">
+    <div class="qz-banner qz-banner-green">
+        <div class="qz-banner-icon">✅</div>
+        <div class="qz-banner-glow qz-glow-green"></div>
+    </div>
+{% elif item.is_expired %}
+<div class="qz-card qz-exp">
+    <div class="qz-banner qz-banner-red">
+        <div class="qz-banner-icon">🔒</div>
+        <div class="qz-banner-glow qz-glow-red"></div>
+    </div>
+{% else %}
+<div class="qz-card">
+    <div class="qz-banner qz-banner-blue">
+        <div class="qz-banner-icon">📝</div>
+        <div class="qz-banner-glow qz-glow-blue"></div>
+    </div>
+{% endif %}
+
+    <!-- Body -->
+    <div class="qz-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;margin-bottom:0.75rem;">
+            <h3 class="qz-title">{{ item.quiz.title }}</h3>
+            <span class="qz-time-chip">
+                <i class="fas fa-clock" style="font-size:0.6rem;"></i> {{ item.quiz.time_limit }}m
+            </span>
+        </div>
+
+        {% if item.quiz.description %}
+        <p class="qz-desc">{{ item.quiz.description|truncatewords:14 }}</p>
+        {% endif %}
+
+        <!-- Stats -->
+        <div class="qz-stats">
+            <div class="qz-stat">
+                <div class="qz-stat-ico" style="background:#eff6ff;color:#3b82f6;"><i class="fas fa-list-ul"></i></div>
+                <div>
+                    <div class="qz-stat-n">{{ item.quiz.questions.count }}</div>
+                    <div class="qz-stat-l">Questions</div>
+                </div>
+            </div>
+            <div class="qz-stat-divider"></div>
+            <div class="qz-stat">
+                <div class="qz-stat-ico" style="background:#f5f3ff;color:#8b5cf6;"><i class="fas fa-users"></i></div>
+                <div>
+                    <div class="qz-stat-n">{{ item.quiz.attempts.count }}</div>
+                    <div class="qz-stat-l">Attempts</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expiry -->
+        {% if item.quiz.expires_at %}
+        <div class="qz-expiry {% if item.is_expired %}qz-expiry-red{% endif %}">
+            <i class="fas fa-clock"></i>
+            {% if item.is_expired %}Expired{% else %}Expires{% endif %}:
+            <strong>{{ item.quiz.expires_at|date:"d/m/Y h:i A" }}</strong>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <div class="qz-footer">
+        {% if request.user.is_staff %}
+            <a href="{% url 'quiz_detail' item.quiz.id %}" class="qz-btn qz-btn-blue">
+                <i class="fas fa-search"></i> View / Take Quiz <i class="fas fa-arrow-right qz-arr"></i>
+            </a>
+
+        {% elif item.is_submitted %}
+            <div class="qz-status-tag qz-tag-green"><i class="fas fa-check-circle"></i> Submitted</div>
+            <a href="{% url 'quiz_result' item.attempt_id %}" class="qz-btn qz-btn-ghost">
+                <i class="fas fa-chart-bar"></i> Results
+            </a>
+
+        {% elif item.is_expired %}
+            <div class="qz-status-tag qz-tag-red"><i class="fas fa-lock"></i> Expired</div>
+            <a href="{% url 'expired_quiz_answers' item.quiz.id %}" class="qz-btn qz-btn-ghost">
+                <i class="fas fa-eye"></i> Answers
+            </a>
+
+        {% else %}
+            <a href="{% url 'start_quiz' item.quiz.id %}" class="qz-btn qz-btn-blue">
+                <i class="fas fa-play-circle"></i> Start Quiz <i class="fas fa-arrow-right qz-arr"></i>
+            </a>
+        {% endif %}
+    </div>
+
+</div>
+{% endfor %}
+</div>
+
+{% else %}
+<div style="background:white;border-radius:1.5rem;box-shadow:0 10px 30px rgba(0,0,0,0.04);
+            border:1px solid #f1f5f9;text-align:center;padding:5rem 2rem;">
+    <div style="font-size:3.5rem;margin-bottom:1rem;opacity:.3;">📭</div>
+    <h3 style="font-weight:700;color:#475569;margin-bottom:0.4rem;">No Quizzes Available</h3>
+    <p style="color:#94a3b8;font-size:0.88rem;">Please check back later!</p>
+</div>
+{% endif %}
+
+
+<style>
+/* ── Grid ─────────────────────────── */
+.qz-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.4rem;
+}
+
+/* ── Card ─────────────────────────── */
+.qz-card {
+    background: white;
+    border-radius: 1.4rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.32s cubic-bezier(0.4,0,0.2,1);
+}
+.qz-card:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 24px 48px rgba(59,130,246,0.13);
+    border-color: #bfdbfe;
+}
+.qz-done:hover { box-shadow:0 24px 48px rgba(22,163,74,0.11); border-color:#86efac; }
+.qz-exp:hover  { box-shadow:0 24px 48px rgba(239,68,68,0.09); border-color:#fca5a5; }
+
+/* ── Banner ───────────────────────── */
+.qz-banner {
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.qz-banner-blue  { background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); }
+.qz-banner-green { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+.qz-banner-red   { background: linear-gradient(135deg, #f87171 0%, #dc2626 100%); }
+
+.qz-banner-icon {
+    font-size: 2.5rem;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+    animation: qz-float 3s ease-in-out infinite;
+}
+@keyframes qz-float {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-5px); }
+}
+
+/* Soft glow blob inside banner */
+.qz-banner-glow {
+    position: absolute;
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    top: -30px; right: -20px;
+    opacity: 0.25;
+}
+.qz-glow-blue  { background: #93c5fd; }
+.qz-glow-green { background: #86efac; }
+.qz-glow-red   { background: #fca5a5; }
+
+/* Subtle shine sweep on hover */
+.qz-banner::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 70%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.5s ease;
+}
+.qz-card:hover .qz-banner::after { left: 130%; }
+
+/* ── Body ─────────────────────────── */
+.qz-body { padding: 1.3rem 1.4rem 0.8rem; flex: 1; }
+
+.qz-title {
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1.3;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+}
+.qz-desc {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    margin: 0.4rem 0 0.9rem;
+    line-height: 1.5;
+}
+
+/* ── Time chip ────────────────────── */
+.qz-time-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    padding: 3px 9px;
+    border-radius: 99px;
+    font-size: 0.71rem;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── Stats ────────────────────────── */
+.qz-stats {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 0.85rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.9rem;
+}
+.qz-stat {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.qz-stat-divider {
+    width: 1px;
+    height: 28px;
+    background: #e2e8f0;
+    margin: 0 0.75rem;
+    flex-shrink: 0;
+}
+.qz-stat-ico {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+.qz-stat-n { font-size: 1.1rem; font-weight: 800; color: #1e293b; line-height: 1; }
+.qz-stat-l { font-size: 0.68rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 2px; }
+
+/* ── Expiry ───────────────────────── */
+.qz-expiry {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fefce8;
+    color: #854d0e;
+    border: 1px solid #fef08a;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+.qz-expiry-red { background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
+
+/* ── Footer ───────────────────────── */
+.qz-footer {
+    padding: 0.9rem 1.4rem 1.2rem;
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+    border-top: 1px solid #f8fafc;
+    flex-wrap: wrap;
+}
+
+/* ── Buttons ──────────────────────── */
+.qz-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.62rem 1.15rem;
+    border-radius: 0.75rem;
+    font-size: 0.83rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.22s;
+    white-space: nowrap;
+    font-family: 'Outfit','Segoe UI',sans-serif;
+    flex: 1;
+    justify-content: center;
+}
+.qz-btn-blue {
+    background: linear-gradient(135deg,#3b82f6,#6366f1);
+    color: white;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.28);
+}
+.qz-btn-blue:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(59,130,246,0.38);
+    color: white;
+}
+.qz-btn-blue:hover .qz-arr { transform: translateX(3px); }
+.qz-arr { transition: transform 0.2s; }
+
+.qz-btn-ghost {
+    background: #f8fafc;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    flex: 0;
+}
+.qz-btn-ghost:hover { background:#f1f5f9; color:#1e293b; }
+
+/* ── Status tags ──────────────────── */
+.qz-status-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.55rem 0.9rem;
+    border-radius: 0.7rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex: 1;
+    justify-content: center;
+    font-family: 'Outfit','Segoe UI',sans-serif;
+}
+.qz-tag-green { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+.qz-tag-red   { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+
+/* ── Responsive ───────────────────── */
+@media (max-width: 640px) {
+    .qz-grid { 
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Center the quiz count box in hero */
+    .qz-hero-inner {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center;
+    }
+
+    /* Smaller banner height */
+    .qz-banner { height: 65px; }
+    .qz-banner-icon { font-size: 1.75rem; }
+
+    /* Compact body padding */
+    .qz-body { padding: 0.9rem 1rem 0.6rem; }
+
+    /* Smaller footer */
+    .qz-footer { padding: 0.7rem 1rem 0.9rem; }
+
+    /* Smaller title */
+    .qz-title { font-size: 0.92rem; }
+
+    /* Compact stats */
+    .qz-stats { padding: 0.55rem 0.75rem; margin-bottom: 0.6rem; }
+    .qz-stat-n { font-size: 0.95rem; }
+}
+</style>
+
+{% endblock %}

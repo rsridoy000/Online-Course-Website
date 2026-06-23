@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+{% block title %}{{ quiz.title }} - Liquid_Triple_R{% endblock %}
+{% block content %}
+<div class="quiz-container">
+    <div class="quiz-header-bar">
+        <div class="quiz-info-left">
+            <h2>{{ quiz.title }}</h2>
+            <p>Student: <strong>{{ attempt.student_name }}</strong></p>
+        </div>
+        <div class="timer-display" id="timer">
+            <div class="timer-circle">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" class="timer-background"></circle>
+                    <circle cx="50" cy="50" r="45" class="timer-progress" id="timerProgress"></circle>
+                </svg>
+                <div class="timer-text">
+                    <span id="timerMinutes">{{ quiz.time_limit }}</span>:<span id="timerSeconds">00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="quiz-content">
+        <div class="question-navigation">
+            <h4>Questions</h4>
+            <div class="question-list" id="questionList">
+                {% for question in questions %}
+                <button class="question-nav-btn" data-question="{{ question.id }}" onclick="navigateToQuestion({{ question.id }})">Q{{ forloop.counter }}</button>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="questions-container">
+            <div class="question-progress">
+                <span id="currentQuestion">1</span> / <span id="totalQuestions">{{ total_questions }}</span>
+            </div>
+            <form id="quizForm" class="quiz-form">
+                {% csrf_token %}
+                <input type="hidden" name="attempt_id" value="{{ attempt.id }}" id="attemptId">
+                {% for question in questions %}
+                <div class="question-block" id="question-{{ question.id }}" data-question-id="{{ question.id }}" style="display:none;">
+                    <div class="question-text">
+                        <h3>Question {{ forloop.counter }}</h3>
+                        <p>{{ question.text }}</p>
+                    </div>
+                    <div class="options-container">
+                        {% for option in question.options.all %}
+                        <button type="button" class="option-btn" data-option-id="{{ option.id }}" data-question-id="{{ question.id }}" onclick="selectOption(this, {{ option.id }}, {{ question.id }})">
+                            <span class="option-letter">{% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% elif forloop.counter == 4 %}D{% endif %}</span>
+                            <span class="option-text">{{ option.text }}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </form>
+            <div class="question-navigation-buttons">
+                <button id="prevBtn" class="btn btn-secondary" onclick="previousQuestion()" disabled>← Previous</button>
+                <button id="submitBtn" class="btn btn-success btn-large" onclick="submitQuiz()" style="display:none;">Submit Quiz</button>
+                <button id="nextBtn" class="btn btn-secondary" onclick="nextQuestion()">Next →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.option-btn{width:100%;display:flex;align-items:center;padding:12px 16px;margin:8px 0;border:2px solid #e0e0e0;border-radius:8px;background:white;cursor:pointer;text-align:left;gap:12px;transition:all 0.2s;}
+.option-btn:hover{border-color:#2563eb;background:#f0f7ff;}
+.option-btn.selected{border-color:#2563eb;background:#eff6ff;}
+.option-letter{font-weight:bold;color:#2563eb;min-width:24px;}
+
+#warningAlert {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #dc2626;
+    color: white;
+    padding: 18px 40px;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    z-index: 99999;
+    box-shadow: 0 6px 30px rgba(0,0,0,0.5);
+    text-align: center;
+    animation: warningPop 0.3s ease;
+}
+
+@keyframes warningPop {
+    from { transform: translateX(-50%) scale(0.8); opacity: 0; }
+    to   { transform: translateX(-50%) scale(1);   opacity: 1; }
+}
+</style>
+
+<script>
+var studentName = "{{ attempt.student_name }}";
+var attemptId = {{ attempt.id }};
+var quizId = {{ quiz.id }};
+var timeLimit = {{ quiz.time_limit }};
+var questionOrder = {{ attempt.question_order|safe }};
+var totalQuestions = {{ total_questions }};
+var currentQuestionIndex = 0;
+var questionIds = questionOrder;
+var selectedAnswers = {};
+var timeRemaining = timeLimit * 60;
+var timerInterval = null;
+var quizSubmitted = false;
+
+document.addEventListener('DOMContentLoaded', function() {
+    showQuestion(0);
+    updateNavigationButtons();
+    startTimer();
+    setupAntiCheat();
+});
+
+function showWarningAlert(message) {
+    var existing = document.getElementById('warningAlert');
+    if (existing) existing.remove();
+    var alertDiv = document.createElement('div');
+    alertDiv.id = 'warningAlert';
+    alertDiv.textContent = message;
+    document.body.appendChild(alertDiv);
+    setTimeout(function() {
+        var el = document.getElementById('warningAlert');
+        if (el) el.remove();
+    }, 2000);
+}
+
+function showQuestion(index) {
+    var blocks = document.querySelectorAll('.question-block');
+    for (var i = 0; i < blocks.length; i++) {
+        blocks[i].style.display = 'none';
+    }
+    var qId = questionIds[index];
+    var block = document.getElementById('question-' + qId);
+    if (block) block.style.display = 'block';
+    document.getElementById('currentQuestion').textContent = index + 1;
+    currentQuestionIndex = index;
+    updateQuestionNavigation();
+    updateNavigationButtons();
+}
+
+function selectOption(element, optionId, questionId) {
+    var btns = document.querySelectorAll('[data-question-id="' + questionId + '"].option-btn');
+    for (var i = 0; i < btns.length; i++) {
+        btns[i].classList.remove('selected');
+    }
+    element.classList.add('selected');
+    selectedAnswers[questionId] = optionId;
+    saveAnswer(questionId, optionId);
+    updateQuestionNavigation();
+}
+
+function saveAnswer(questionId, optionId) {
+    fetch('/quiz/save-answer/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({attempt_id: attemptId, question_id: questionId, option_id: optionId})
+    }).then(function(r) { return r.json(); }).catch(function(e) { console.error(e); });
+}
+
+function navigateToQuestion(questionId) {
+    var index = questionIds.indexOf(questionId);
+    if (index !== -1) {
+        showQuestion(index);
+        window.scrollTo(0, 0);
+    }
+}
+
+function nextQuestion() {
+    if (currentQuestionIndex < questionIds.length - 1) {
+        showQuestion(currentQuestionIndex + 1);
+        window.scrollTo(0, 0);
+    }
+}
+
+function previousQuestion() {
+    if (currentQuestionIndex > 0) {
+        showQuestion(currentQuestionIndex - 1);
+        window.scrollTo(0, 0);
+    }
+}
+
+function updateNavigationButtons() {
+    var isLast = currentQuestionIndex === questionIds.length - 1;
+    var isFirst = currentQuestionIndex === 0;
+
+    document.getElementById('prevBtn').disabled = isFirst;
+
+    // Last question: show Submit, hide Next
+    // Other questions: hide Submit, show Next
+    if (isLast) {
+        document.getElementById('submitBtn').style.display = 'inline-block';
+        document.getElementById('nextBtn').style.display = 'none';
+    } else {
+        document.getElementById('submitBtn').style.display = 'none';
+        document.getElementById('nextBtn').style.display = 'inline-block';
+    }
+}
+
+function updateQuestionNavigation() {
+    var navBtns = document.querySelectorAll('.question-nav-btn');
+    for (var i = 0; i < navBtns.length; i++) {
+        var qId = parseInt(navBtns[i].dataset.question);
+        navBtns[i].classList.remove('answered', 'current');
+        if (selectedAnswers[qId]) navBtns[i].classList.add('answered');
+        if (i === currentQuestionIndex) navBtns[i].classList.add('current');
+    }
+}
+
+function startTimer() {
+    timerInterval = setInterval(function() {
+        timeRemaining--;
+        var m = Math.floor(timeRemaining / 60);
+        var s = timeRemaining % 60;
+        document.getElementById('timerMinutes').textContent = String(m).padStart(2, '0');
+        document.getElementById('timerSeconds').textContent = String(s).padStart(2, '0');
+        var pct = (timeRemaining / (timeLimit * 60)) * 100;
+        document.getElementById('timerProgress').style.strokeDashoffset = (100 - pct) * 2.827;
+        if (timeRemaining <= 60) document.getElementById('timer').classList.add('warning');
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            submitQuiz();
+        }
+    }, 1000);
+}
+
+function submitQuiz() {
+    quizSubmitted = true;
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    fetch('/quiz/submit/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({attempt_id: attemptId})
+    }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.success) {
+            window.location.href = '/result/' + data.attempt_id + '/';
+        } else {
+            alert('Error: ' + data.error);
+            quizSubmitted = false;
+            btn.disabled = false;
+            btn.textContent = 'Submit Quiz';
+        }
+    }).catch(function(e) {
+        console.error(e);
+        quizSubmitted = false;
+        btn.disabled = false;
+        btn.textContent = 'Submit Quiz';
+    });
+}
+
+function setupAntiCheat() {
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden && !quizSubmitted) {
+            logWarning('tab_switch', function(data) {
+                if (data.action === 'warning') {
+                    showWarningAlert(data.message);
+                } else if (data.action === 'disqualified') {
+                    quizSubmitted = true;
+                    showWarningAlert(data.message);
+                    setTimeout(function() {
+                        submitQuiz();
+                    }, 2000);
+                }
+            });
+        }
+    });
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+    });
+}
+function logWarning(type, callback) {
+    fetch('/quiz/log-warning/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({attempt_id: attemptId, warning_type: type})
+    }).then(function(r) { return r.json(); })
+      .then(function(data) { if (callback) callback(data); })
+      .catch(function(e) { console.error(e); });
+}
+</script>
+{% endblock %}

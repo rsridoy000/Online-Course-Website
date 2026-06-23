@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Student Attempt Details - Liquid_Triple_R{% endblock %}
+
+{% block content %}
+<div class="container admin-container">
+    <div class="admin-header">
+        <h1>👤 Student Attempt Details</h1>
+    </div>
+
+    <!-- Student Info -->
+    <div class="attempt-info-card">
+        <div class="info-row">
+            <span class="label">Student Name:</span>
+            <span class="value">{{ attempt.student_name }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Quiz Title:</span>
+            <span class="value">{{ attempt.quiz.title }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Score:</span>
+            <span class="value"><strong>{{ attempt.score }}/{{ attempt.total_questions }}</strong></span>
+        </div>
+        <div class="info-row">
+            <span class="label">Percentage:</span>
+            <span class="value">
+                <strong>
+                    {% if attempt.total_questions > 0 %}
+                        {% widthratio attempt.score attempt.total_questions 100 %}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </strong>
+            </span>
+        </div>
+        <div class="info-row">
+            <span class="label">Started At:</span>
+            <span class="value">{{ attempt.started_at|date:"d M Y H:i:s" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Submitted At:</span>
+            <span class="value">{{ attempt.submitted_at|date:"d M Y H:i:s" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Duration:</span>
+            <span class="value">
+                {% with duration=attempt.submitted_at|timesince:attempt.started_at %}
+                    {{ duration }}
+                {% endwith %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Warning Logs -->
+    {% if warnings %}
+        <div class="warnings-section">
+            <h3>⚠️ Warning Logs</h3>
+            <div class="warnings-list">
+                {% for warning in warnings %}
+                    <div class="warning-item">
+                        <span class="warning-type">
+                            {% if warning.warning_type == 'tab_switch' %}
+                                🔄 Tab Switch
+                            {% elif warning.warning_type == 'page_refresh' %}
+                                🔃 Page Refresh
+                            {% elif warning.warning_type == 'page_exit' %}
+                                ❌ Page Exit
+                            {% elif warning.warning_type == 'focus_lost' %}
+                                👁️ Focus Lost
+                            {% endif %}
+                        </span>
+                        <span class="warning-time">{{ warning.timestamp|date:"H:i:s" }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Detailed Answers -->
+    <div class="detailed-answers-section">
+        <h3>📋 Answer Details</h3>
+        
+        {% for item in questions_with_answers %}
+            <div class="answer-item {% if item.is_correct %}correct{% else %}incorrect{% endif %}">
+                <div class="answer-header">
+                    <h4>Question {{ forloop.counter }}: {{ item.question.text }}</h4>
+                    <span class="answer-badge">
+                        {% if item.is_correct %}
+                            ✓ Correct
+                        {% elif item.student_answer %}
+                            ✗ Incorrect
+                        {% else %}
+                            ❓ Not Answered
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="answer-options">
+                    {% for option in item.question.options.all %}
+                        <div class="answer-option 
+                            {% if option.is_correct %}correct-answer{% endif %}
+                            {% if item.student_answer.selected_option.id == option.id and not option.is_correct %}wrong-answer{% endif %}
+                        ">
+                            <div class="option-indicator">
+                                {% if option.is_correct %}
+                                    <span class="correct-icon">✓</span>
+                                    <span class="label">Correct Answer</span>
+                                {% elif item.student_answer and item.student_answer.selected_option.id == option.id %}
+                                    <span class="wrong-icon">✗</span>
+                                    <span class="label">Student's Answer</span>
+                                {% else %}
+                                    <span class="neutral-icon">○</span>
+                                {% endif %}
+                            </div>
+                            <div class="option-content">
+                                <p>{{ option.text }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="action-buttons">
+        <a href="{% url 'quiz_detail' attempt.quiz.id %}" class="btn btn-secondary">← Back to Quiz</a>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

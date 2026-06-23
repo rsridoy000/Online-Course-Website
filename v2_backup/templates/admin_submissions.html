@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Submissions | Liquid_Triple_R Admin{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1><i class="fas fa-graduation-cap"></i> Student Submissions</h1>
+    <div class="header-actions">
+        <a href="/admin-dashboard/" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="admin-container" style="background: white; border-radius: 1rem; padding: 0;">
+    <table>
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Assignment</th>
+                <th>Submitted At</th>
+                <th>Status</th>
+                <th>Marks</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in submissions %}
+            <tr>
+                <td><strong>{{ sub.student.student_profile.student_id }}</strong></td>
+                <td>{{ sub.student.get_full_name }}</td>
+                <td>{{ sub.assignment.title }}</td>
+                <td>{{ sub.submitted_at|date:"M d, H:i" }}</td>
+                <td>
+                    {% if sub.is_graded %}
+                        <span class="badge badge-success">Graded</span>
+                    {% else %}
+                        <span class="badge badge-warning">Pending</span>
+                    {% endif %}
+                </td>
+                <td>{{ sub.marks }} / {{ sub.assignment.total_marks }}</td>
+                <td class="action-buttons">
+                    <a href="{{ sub.file.url }}" class="btn btn-sm btn-info" download><i class="fas fa-download"></i> ZIP</a>
+                    <button class="btn btn-sm btn-primary" onclick="openGradeModal({{ sub.id }}, '{{ sub.student.get_full_name }}', '{{ sub.marks }}', '{{ sub.feedback }}')">
+                        <i class="fas fa-edit"></i> Grade
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="empty-state">No submissions yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Grading Modal -->
+<div id="gradeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+    <div style="width:90%; max-width:500px; background:white; border-radius:1rem; padding:2rem;">
+        <h3 id="modalStudentName" class="mb-3">Grade Submission</h3>
+        <form id="gradeForm" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Marks</label>
+                <input type="number" name="marks" id="modalMarks" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label>Feedback</label>
+                <textarea name="feedback" id="modalFeedback" rows="4"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeGradeModal()">Cancel</button>
+                <button type="submit" class="btn btn-success">Update Grade</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openGradeModal(subId, name, currentMarks, currentFeedback) {
+        const modal = document.getElementById('gradeModal');
+        const form = document.getElementById('gradeForm');
+        
+        document.getElementById('modalStudentName').innerText = 'Grading: ' + name;
+        document.getElementById('modalMarks').value = currentMarks;
+        document.getElementById('modalFeedback').value = currentFeedback;
+        
+        form.action = '/submission/' + subId + '/grade/';
+        modal.style.display = 'flex';
+    }
+
+    function closeGradeModal() {
+        document.getElementById('gradeModal').style.display = 'none';
+    }
+</script>
+{% endblock %}

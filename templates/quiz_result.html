@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Quiz Result | {{ attempt.quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="result-wrapper">
+    <!-- Hero Score Card -->
+    <div class="result-hero-card">
+        <div class="confetti-canvas" id="confetti"></div>
+        
+        <div class="score-circle-container">
+            <svg viewBox="0 0 100 100" class="score-svg">
+                <circle cx="50" cy="50" r="45" class="score-bg"></circle>
+                <circle cx="50" cy="50" r="45" class="score-fill" id="scoreFill" style="stroke-dashoffset: calc(283 - (283 * {{ percentage }}) / 100);"></circle>
+            </svg>
+            <div class="score-text">
+                <span class="percentage">{{ percentage|floatformat:0 }}<small>%</small></span>
+                <span class="label">SCORE</span>
+            </div>
+        </div>
+
+        <div class="result-message">
+            <h1 class="congrats-text">
+                {% if percentage >= 80 %}🌟 Outstanding, {{ attempt.student_name }}!
+                {% elif percentage >= 60 %}🎉 Well Done, {{ attempt.student_name }}!
+                {% elif percentage >= 40 %}📚 Good Effort, {{ attempt.student_name }}
+                {% else %}💪 Don't give up, {{ attempt.student_name }}{% endif %}
+            </h1>
+            <p class="result-subtext">You have completed <strong>{{ attempt.quiz.title }}</strong></p>
+        </div>
+
+        <div class="stats-pills">
+            <div class="stat-pill">
+                <span class="pill-label">CORRECT</span>
+                <span class="pill-val success">{{ attempt.score }}</span>
+            </div>
+            <div class="stat-pill">
+                <span class="pill-label">TOTAL</span>
+                <span class="pill-val">{{ attempt.total_questions }}</span>
+            </div>
+            <div class="stat-pill">
+                <span class="pill-label">STATUS</span>
+                <span class="pill-val 
+                    {% if attempt.is_disqualified %}danger
+                    {% elif has_warning %}warning
+                    {% elif percentage >= 40 %}success
+                    {% else %}danger{% endif %}">
+                    {% if attempt.is_disqualified %}DISQUALIFIED
+                    {% elif has_warning %}WARNING
+                    {% elif percentage >= 40 %}PASSED
+                    {% else %}FAILED{% endif %}
+                </span>
+            </div>
+        </div>
+
+        {% if attempt.tab_switch_count > 0 or attempt.is_disqualified %}
+        <div class="warning-banner-result" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; background: #fff1f2; border: 1px solid #fecaca; color: #b91c1c; padding: 1.5rem; border-radius: 1.5rem; margin-top: 2rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 1.1rem;">
+                <i class="fas fa-user-shield"></i>
+                <strong>Security Penalty Applied</strong>
+            </div>
+            <div style="font-size: 0.9rem; opacity: 0.9; text-align: center;">
+                Detected <strong>{{ attempt.tab_switch_count }}</strong> Tab Switch activity.
+                <br>
+                {% if attempt.is_disqualified %}
+                    <span style="font-weight: 800; color: #ef4444;">Status: DISQUALIFIED (3+ switches)</span>
+                {% elif attempt.tab_switch_count == 1 %}
+                    <span style="font-weight: 700;">Penalty: -2 Marks (1st switch)</span>
+                {% elif attempt.tab_switch_count == 2 %}
+                    <span style="font-weight: 700;">Penalty: -5 Marks (2nd switch)</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Review Section -->
+    {% if attempt.quiz.is_expired or user.is_staff %}
+    <div class="review-section">
+        <div class="section-header">
+            <div class="header-icon"><i class="fas fa-clipboard-check"></i></div>
+            <h2>Detailed Review</h2>
+            <div class="header-line"></div>
+        </div>
+
+        <div class="review-list">
+            {% for item in questions_with_answers %}
+            <div class="review-card {% if item.is_correct %}correct-card{% else %}wrong-card{% endif %}">
+                <div class="card-header">
+                    <div class="q-num">{{ forloop.counter }}</div>
+                    <h3 class="q-text">{{ item.question.text }}</h3>
+                    <div class="q-status-badge">
+                        {% if item.is_correct %}
+                            <i class="fas fa-check"></i> CORRECT
+                        {% else %}
+                            <i class="fas fa-times"></i> INCORRECT
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="options-review">
+                    {% for option in item.question.options.all %}
+                    <div class="review-option 
+                        {% if option.is_correct %}is-correct{% endif %}
+                        {% if item.student_answer.selected_option.id == option.id and not option.is_correct %}is-wrong{% endif %}
+                        {% if item.student_answer.selected_option.id == option.id %}is-selected{% endif %}">
+                        
+                        <div class="opt-indicator">
+                            {% if option.is_correct %}<i class="fas fa-check"></i>
+                            {% elif item.student_answer.selected_option.id == option.id %}<i class="fas fa-times"></i>
+                            {% endif %}
+                        </div>
+                        <span class="opt-text">{{ option.text }}</span>
+                        
+                        <div class="opt-label">
+                            {% if option.is_correct and item.student_answer.selected_option.id == option.id %}Correct Choice
+                            {% elif option.is_correct %}Correct Answer
+                            {% elif item.student_answer.selected_option.id == option.id %}Your Choice
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if not item.student_answer %}
+                    <div class="not-answered-alert">
+                        <i class="fas fa-exclamation-circle"></i> This question was not answered.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="locked-card">
+        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+        <h3>Review Locked</h3>
+        <p>Detailed review will be available after the quiz expires on <br><strong>{{ attempt.quiz.expires_at|date:"d M, Y | h:i A" }}</strong></p>
+    </div>
+    {% endif %}
+
+    <div class="result-actions">
+        <a href="/" class="back-home-btn">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Dashboard</span>
+        </a>
+    </div>
+</div>
+
+<style>
+    .result-wrapper {
+        max-width: 800px;
+        margin: 2rem auto 5rem;
+        padding: 0 1rem;
+    }
+
+    /* Hero Card */
+    .result-hero-card {
+        background: white;
+        border-radius: 2.5rem;
+        padding: 4rem 2rem;
+        text-align: center;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+        border: 1px solid #f1f5f9;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 3rem;
+    }
+
+    .score-circle-container {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 2.5rem;
+    }
+
+    .score-svg {
+        transform: rotate(-90deg);
+        width: 100%;
+        height: 100%;
+    }
+
+    .score-bg {
+        fill: none;
+        stroke: #f1f5f9;
+        stroke-width: 8;
+    }
+
+    .score-fill {
+        fill: none;
+        stroke: #6366f1;
+        stroke-width: 8;
+        stroke-linecap: round;
+        stroke-dasharray: 283;
+        transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .score-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .score-text .percentage {
+        display: block;
+        font-size: 3.5rem;
+        font-weight: 900;
+        color: #1e293b;
+        letter-spacing: -2px;
+        line-height: 1;
+    }
+
+    .score-text .percentage small { font-size: 1.5rem; opacity: 0.5; }
+    .score-text .label { font-size: 0.8rem; font-weight: 800; color: #64748b; letter-spacing: 2px; }
+
+    .congrats-text { font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
+    .result-subtext { color: #64748b; font-size: 1.1rem; margin-bottom: 2.5rem; }
+
+    .stats-pills {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-pill {
+        background: #f8fafc;
+        padding: 0.75rem 1.5rem;
+        border-radius: 1.25rem;
+        border: 1px solid #f1f5f9;
+        display: flex;
+        flex-direction: column;
+        min-width: 130px;
+    }
+
+    .pill-label { font-size: 0.7rem; font-weight: 800; color: #94a3b8; margin-bottom: 2px; }
+    .pill-val { font-size: 1.25rem; font-weight: 800; color: #1e293b; }
+    .pill-val.success { color: #10b981; }
+    .pill-val.danger { color: #ef4444; }
+    .pill-val.warning { color: #f59e0b; }
+
+    .warning-banner-result {
+        margin-top: 2rem;
+        background: #fffbeb;
+        border: 1px solid #fef3c7;
+        padding: 0.75rem 1.5rem;
+        border-radius: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #b45309;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    /* Review Section */
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .header-icon {
+        width: 44px;
+        height: 44px;
+        background: #6366f1;
+        color: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .section-header h2 { font-size: 1.5rem; font-weight: 800; color: #1e293b; margin: 0; }
+    .header-line { flex: 1; height: 1px; background: #e2e8f0; }
+
+    .review-list { display: grid; gap: 1.5rem; }
+
+    .review-card {
+        background: white;
+        border-radius: 1.5rem;
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .correct-card .card-header { background: #f0fdf4; }
+    .wrong-card .card-header { background: #fff1f2; }
+
+    .q-num {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #1e293b;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+
+    .correct-card .q-num { background: #10b981; }
+    .wrong-card .q-num { background: #ef4444; }
+
+    .q-text { font-size: 1.1rem; font-weight: 700; color: #1e293b; flex: 1; margin: 0; line-height: 1.4; }
+
+    .q-status-badge {
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 0.4rem 0.8rem;
+        border-radius: 2rem;
+    }
+
+    .correct-card .q-status-badge { background: #dcfce7; color: #15803d; }
+    .wrong-card .q-status-badge { background: #ffe4e6; color: #991b1b; }
+
+    .options-review { padding: 1.5rem; display: grid; gap: 0.75rem; }
+
+    .review-option {
+        padding: 1rem 1.25rem;
+        border-radius: 1rem;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        position: relative;
+    }
+
+    .review-option.is-correct { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+    .review-option.is-wrong { background: #fff1f2; border-color: #fecdd3; color: #991b1b; }
+
+    .opt-indicator {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+    }
+
+    .is-correct .opt-indicator { background: #10b981; color: white; border-color: #10b981; }
+    .is-wrong .opt-indicator { background: #ef4444; color: white; border-color: #ef4444; }
+
+    .opt-text { font-weight: 600; font-size: 1rem; }
+    .opt-label { margin-left: auto; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; opacity: 0.6; }
+
+    .not-answered-alert {
+        background: #f1f5f9;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.75rem;
+        font-size: 0.85rem;
+        color: #64748b;
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Locked Card */
+    .locked-card {
+        background: white;
+        padding: 4rem 2rem;
+        text-align: center;
+        border-radius: 2rem;
+        border: 1px solid #f1f5f9;
+        margin-bottom: 3rem;
+    }
+
+    .lock-icon {
+        width: 60px;
+        height: 60px;
+        background: #fef3c7;
+        color: #f59e0b;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin: 0 auto 1.5rem;
+    }
+
+    .locked-card h3 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.75rem; }
+    .locked-card p { color: #64748b; line-height: 1.6; }
+
+    /* Actions */
+    .result-actions { text-align: center; }
+
+    .back-home-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: #1e293b;
+        color: white;
+        padding: 1.25rem 3rem;
+        border-radius: 1.25rem;
+        text-decoration: none;
+        font-weight: 800;
+        transition: all 0.3s;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .back-home-btn:hover {
+        background: #334155;
+        transform: translateX(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+
+    @media (max-width: 600px) {
+        .result-hero-card { padding: 3rem 1rem; }
+        .score-circle-container { width: 160px; height: 160px; }
+        .congrats-text { font-size: 1.5rem; }
+        .stat-pill { min-width: calc(50% - 0.5rem); }
+        .card-header { flex-direction: column; align-items: flex-start; }
+        .q-status-badge { margin-top: 0.5rem; }
+    }
+</style>
+
+{% if percentage >= 80 %}
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#6366f1', '#10b981', '#f59e0b', '#ef4444']
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,2185 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Admin Dashboard - Liquid_Triple_R{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ─── Modern Theme Variables ─── */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+        --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        --card-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+        --hover-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+        --indigo-glow: 0 10px 25px -5px rgba(99, 102, 241, 0.25);
+    }
+
+    /* ─── Hero Section Styling ─── */
+    .ad-hero-section {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+        border-radius: 1.5rem !important;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15) !important;
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-glow-1 {
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 240px;
+        height: 240px;
+        background: rgba(99, 102, 241, 0.15);
+        border-radius: 50%;
+        pointer-events: none;
+        filter: blur(40px);
+    }
+    .hero-glow-2 {
+        position: absolute;
+        bottom: -40px;
+        left: 20%;
+        width: 140px;
+        height: 140px;
+        background: rgba(16, 185, 129, 0.1);
+        border-radius: 50%;
+        pointer-events: none;
+        filter: blur(30px);
+    }
+
+    /* ─── Stat Cards ─── */
+    .ad-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .ad-stat {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1.25rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: default;
+        position: relative;
+        overflow: hidden;
+    }
+    .ad-stat::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: transparent;
+        transition: background 0.3s;
+    }
+    .ad-stat:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--hover-shadow);
+    }
+    .ad-stat-blue:hover::after { background: #4f46e5; }
+    .ad-stat-purple:hover::after { background: #8b5cf6; }
+    .ad-stat-orange:hover::after { background: #f97316; }
+    .ad-stat-green:hover::after { background: #10b981; }
+
+    .ad-stat-ico {
+        width: 56px;
+        height: 56px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        transition: transform 0.3s;
+    }
+    .ad-stat:hover .ad-stat-ico {
+        transform: scale(1.1);
+    }
+    .ad-ico-blue { background: #f0f3ff; color: #4f46e5; }
+    .ad-ico-purple { background: #f5f3ff; color: #8b5cf6; }
+    .ad-ico-orange { background: #fff7ed; color: #f97316; }
+    .ad-ico-green { background: #ecfdf5; color: #10b981; }
+
+    .ad-stat-label {
+        color: #64748b;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 6px;
+    }
+    .ad-stat-num {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1;
+    }
+
+    /* ─── Selector Card ─── */
+    .selector-card {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 1.5rem 2rem;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 2.5rem;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        background: linear-gradient(to right, #ffffff, #fcfdff);
+    }
+    .selector-info h2 {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 0.25rem 0;
+    }
+    .selector-info p {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin: 0;
+        font-weight: 500;
+    }
+    .selector-wrapper {
+        position: relative;
+        min-width: 320px;
+    }
+    .activity-select {
+        width: 100%;
+        padding: 0.85rem 2.5rem 0.85rem 1.25rem;
+        font-size: 0.95rem;
+        font-weight: 750;
+        color: #1e293b;
+        background-color: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 1rem;
+        appearance: none;
+        cursor: pointer;
+        outline: none;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+    .activity-select:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        background-color: white;
+    }
+    .selector-wrapper::after {
+        content: '▼';
+        font-size: 0.65rem;
+        color: #64748b;
+        position: absolute;
+        right: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    /* ─── Premium Navigation Tabs ─── */
+    .ad-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        background: #f1f5f9;
+        border-radius: 1.25rem;
+        padding: 0.4rem;
+        margin-bottom: 2rem;
+        border: 1px solid #e2e8f0;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .ad-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    .ad-tab-btn {
+        flex: 1;
+        min-width: max-content;
+        background: transparent;
+        border: none;
+        color: #475569;
+        font-size: 0.9rem;
+        font-weight: 700;
+        padding: 0.8rem 1.5rem;
+        border-radius: 0.9rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        white-space: nowrap;
+        font-family: inherit;
+    }
+    .ad-tab-btn:hover {
+        color: #6366f1;
+        background: rgba(255, 255, 255, 0.6);
+    }
+    .ad-tab-btn.active {
+        background: white;
+        color: #4f46e5;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+    .ad-warn-pip {
+        background: #ef4444;
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 2px 7px;
+        border-radius: 99px;
+        margin-left: 0.25rem;
+    }
+
+    /* ─── Panel Layout ─── */
+    .ad-card {
+        background: white;
+        border-radius: 1.5rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        margin-bottom: 3rem;
+    }
+    .ad-panel { display: none; }
+    .ad-panel.active { display: block; animation: panelFadeIn 0.3s ease; }
+    @keyframes panelFadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ad-panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #f1f5f9;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .ad-panel-title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0;
+    }
+    .ad-panel-sub {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-top: 4px;
+        font-weight: 500;
+    }
+
+    /* ─── Premium Tables ─── */
+    .ad-tbl-wrap { overflow-x: auto; width: 100%; }
+    .ad-tbl { width: 100%; border-collapse: collapse; text-align: left; }
+    .ad-tbl thead tr { background: #f8fafc; border-bottom: 1.5px solid #f1f5f9; }
+    .ad-tbl th {
+        padding: 1.1rem 1.5rem;
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+    .ad-tbl td {
+        padding: 1.1rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+        font-size: 0.92rem;
+        vertical-align: middle;
+    }
+    .ad-tbl tbody tr { transition: background 0.2s; }
+    .ad-tbl tbody tr:hover td { background: #fcfdff; }
+    .ad-tbl tbody tr:last-child td { border-bottom: none; }
+
+    /* ─── Avatar & Badges ─── */
+    .ad-av {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #6366f1, #818cf8);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.15);
+    }
+    .ad-av-img {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        object-fit: cover;
+        border: 2px solid white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        flex-shrink: 0;
+    }
+    .ad-cell { display: flex; align-items: center; gap: 0.75rem; }
+    .ad-name { font-weight: 750; color: #1e293b; font-size: 0.92rem; }
+    .ad-sub { color: #94a3b8; font-size: 0.75rem; margin-top: 2px; }
+
+    .ad-bdg {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 99px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        border: 1px solid transparent;
+    }
+    .ad-bdg-g { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+    .ad-bdg-y { background: #fef3c7; color: #b45309; border-color: #fef08a; }
+    .ad-bdg-r { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+    .ad-bdg-b { background: #e0e7ff; color: #4338ca; border-color: #c7d2fe; }
+    .ad-bdg-o { background: #ffedd5; color: #c2410c; border-color: #fed7aa; }
+
+    /* ─── Buttons & Actions ─── */
+    .ad-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-radius: 0.85rem;
+        font-size: 0.9rem;
+        font-weight: 750;
+        cursor: pointer;
+        text-decoration: none;
+        box-shadow: var(--indigo-glow);
+        transition: all 0.2s;
+    }
+    .ad-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px -5px rgba(99, 102, 241, 0.35);
+        color: white;
+    }
+
+    .ad-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+    .ad-act {
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 750;
+        cursor: pointer;
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .ad-act-info { background: #f0f3ff; color: #4f46e5; border-color: #e0e7ff; }
+    .ad-act-info:hover { background: #e0e7ff; }
+    .ad-act-warn { background: #fffbeb; color: #d97706; border-color: #fef3c7; }
+    .ad-act-warn:hover { background: #fef3c7; }
+    .ad-act-danger { background: #fef2f2; color: #ef4444; border-color: #fee2e2; }
+    .ad-act-danger:hover { background: #fee2e2; }
+
+    /* ─── Score & Warning Adjustment ─── */
+    .ad-adj { display: flex; align-items: center; gap: 8px; }
+    .ad-adj-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        font-size: 1.15rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .ad-adj-m { background: #fee2e2; color: #ef4444; border-color: #fecaca; }
+    .ad-adj-m:hover { background: #fcd5d5; }
+    .ad-adj-p { background: #dcfce7; color: #10b981; border-color: #bbf7d0; }
+    .ad-adj-p:hover { background: #c6f6d5; }
+    .ad-adj-inp {
+        width: 55px;
+        text-align: center;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 6px;
+        font-size: 0.9rem;
+        font-weight: 750;
+        color: #1e293b;
+        outline: none;
+    }
+    .ad-adj-inp:focus { border-color: #6366f1; background: white; }
+    .ad-adj-set {
+        padding: 6px 14px;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .ad-adj-set:hover { transform: translateY(-1px); }
+
+    .ad-score { font-size: 1rem; font-weight: 800; color: #4f46e5; }
+    .ad-score-s { font-size: 0.75rem; color: #94a3b8; margin-left: 4px; font-weight: 600; }
+
+    .ad-ip {
+        background: #f8fafc;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* ─── Empty Placeholder ─── */
+    .ad-empty { text-align: center; padding: 4.5rem 2rem; }
+    .ad-empty-ico { font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.6; }
+    .ad-empty h3 { color: #1e293b; font-size: 1.2rem; font-weight: 800; margin-bottom: 0.4rem; }
+    .ad-empty p { color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+    /* ─── Mobile View Card Customizer ─── */
+    .ad-mobile-cards { display: none; padding: 1.5rem; flex-direction: column; gap: 1.25rem; }
+    .ad-m-card {
+        background: white;
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
+    }
+    .ad-m-card-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; font-size: 0.88rem; }
+    .ad-m-card-label { color: #64748b; font-weight: 600; }
+    .ad-m-card-val { color: #1e293b; font-weight: 750; }
+    .ad-m-card-title { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 1rem; display: block; }
+    .ad-m-card-acts { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px dashed #e2e8f0; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+    /* ─── Progress bar ─── */
+    .ad-prog-wrap { display: flex; align-items: center; gap: 8px; min-width: 110px; }
+    .ad-prog-bar { flex: 1; height: 6px; background: #f1f5f9; border-radius: 99px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+    .ad-prog-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #6366f1); border-radius: 99px; }
+    .ad-prog-pct { font-size: 0.75rem; color: #64748b; font-weight: 700; white-space: nowrap; }
+
+    /* ─── Responsive Grid ─── */
+    @media(max-width: 992px) {
+        .ad-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media(max-width: 768px) {
+        .ad-stats-grid { 
+            grid-template-columns: repeat(2, 1fr) !important; 
+            gap: 0.75rem !important; 
+            margin-bottom: 1.5rem;
+        }
+        .ad-stat {
+            padding: 1rem !important;
+            gap: 0.75rem !important;
+            border-radius: 1rem;
+        }
+        .ad-stat-ico {
+            width: 42px !important;
+            height: 42px !important;
+            font-size: 1.2rem !important;
+            border-radius: 0.75rem !important;
+        }
+        .ad-stat-label {
+            font-size: 0.625rem !important;
+            margin-bottom: 2px !important;
+            letter-spacing: 0.5px !important;
+        }
+        .ad-stat-num {
+            font-size: 1.6rem !important;
+        }
+        .ad-tbl-wrap { display: none !important; }
+        .ad-mobile-cards { display: flex !important; }
+        .selector-card { flex-direction: column; align-items: stretch; padding: 1.25rem 1.5rem; }
+        .selector-wrapper { min-width: 100%; }
+        .ad-tabs { 
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr);
+            padding: 0.5rem;
+            gap: 0.5rem;
+        }
+        .ad-tab-btn { 
+            width: 100% !important; 
+            flex: none !important;
+            min-width: 0 !important;
+            padding: 0.8rem 0.5rem;
+            font-size: 0.85rem;
+            justify-content: center;
+        }
+        .ad-panel-head { padding: 1.25rem 1.5rem; }
+    }
+
+    /* ─── Premium Custom Dropdown ─── */
+    .custom-select {
+        position: relative;
+        min-width: 260px;
+        user-select: none;
+        font-family: inherit;
+    }
+    .custom-select-trigger {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.65rem 1.25rem;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #1e293b;
+        background-color: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 0.85rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .custom-select.open .custom-select-trigger {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        background-color: white;
+    }
+    .custom-select-trigger i {
+        color: #64748b;
+        font-size: 0.75rem;
+        transition: transform 0.3s ease;
+    }
+    .custom-select.open .custom-select-trigger i {
+        transform: rotate(180deg);
+    }
+    .custom-select-options {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.85rem;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+        z-index: 100;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        max-height: 280px;
+        overflow-y: auto;
+        padding: 0.5rem;
+    }
+    .custom-select.open .custom-select-options {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    .custom-option {
+        padding: 0.7rem 1rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #334155;
+        border-radius: 0.6rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+    .custom-option:hover {
+        background-color: #f1f5f9;
+        color: #0f172a;
+    }
+    .custom-option.selected {
+        background-color: #eef2ff;
+        color: #4f46e5;
+        font-weight: 800;
+    }
+    .custom-option.selected::after {
+        content: '✓';
+        position: absolute;
+        right: 1rem;
+        font-weight: 900;
+        color: #4f46e5;
+    }
+    
+    /* Scrollbar for options */
+    .custom-select-options::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-select-options::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 4px;
+    }
+    .custom-select-options::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+    .custom-select-options::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: none;">{% csrf_token %}</div>
+
+<!-- ── Welcome Hero Banner ── -->
+<div class="ad-hero-section" style="padding: 2.2rem 2.5rem; color: white; margin-bottom: 2rem; border-radius: 1.5rem;">
+    <div style="position: relative; z-index: 2;">
+        <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.35rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 0.5rem;">
+            📊 Admin Control Center
+        </h1>
+        <p style="opacity: 0.8; font-size: 0.95rem; margin-bottom: 1.25rem;">
+            Welcome back, <strong style="color: #a5b4fc;">{{ user.username }}</strong>!
+        </p>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); padding: 6px 14px; border-radius: 99px; border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(8px);">
+                <span style="width: 7px; height: 7px; background: #4ade80; border-radius: 50%; display: inline-block; animation: ad-ping 1.5s infinite;"></span>
+                <span style="font-size: 0.8rem; font-weight: 700;">Active Session</span>
+            </div>
+        </div>
+    </div>
+    <div class="hero-glow-1"></div>
+    <div class="hero-glow-2"></div>
+</div>
+
+<style>
+@keyframes ad-ping {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.3); }
+}
+</style>
+
+
+<!-- ── Statistics Dashboard ── -->
+<div class="ad-stats-grid">
+    <!-- Stat 1: Total Students (Constant) -->
+    <a href="{% url 'student_list' %}" class="ad-stat ad-stat-blue" style="text-decoration: none;">
+        <div class="ad-stat-ico ad-ico-blue">👥</div>
+        <div>
+            <div class="ad-stat-label">Total Students</div>
+            <div class="ad-stat-num">{{ total_students }}</div>
+        </div>
+    </a>
+
+    <!-- Stat 2: Attempts / Submissions (Dynamic) -->
+    <div class="ad-stat ad-stat-purple">
+        <div class="ad-stat-ico ad-ico-purple" id="stat-card-2-icon">📝</div>
+        <div>
+            <div class="ad-stat-label" id="stat-card-2-label">Last Quiz Attempts</div>
+            <div class="ad-stat-num" id="stat-card-2-val">{{ latest_quiz_attempts_count }}</div>
+        </div>
+    </div>
+
+    <!-- Stat 4: Assignment Attempts (Constant/Static) -->
+    <div class="ad-stat ad-stat-green">
+        <div class="ad-stat-ico ad-ico-green">📥</div>
+        <div>
+            <div class="ad-stat-label">Assignment Attempts</div>
+            <div class="ad-stat-num" id="stat-card-assignment-val">{{ latest_assignment_attempts_count }}</div>
+        </div>
+    </div>
+
+    <!-- Stat 3: Warnings / Graded (Dynamic) -->
+    <div class="ad-stat ad-stat-orange">
+        <div class="ad-stat-ico ad-ico-orange" id="stat-card-3-icon">⚠️</div>
+        <div>
+            <div class="ad-stat-label" id="stat-card-3-label">Warning Logs</div>
+            <div class="ad-stat-num" id="stat-card-3-val">{{ running_quiz_warnings_count }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="ad-tabs" id="dashboard-tabs">
+    <button class="ad-tab-btn active" onclick="admSwitch('quiz-overview', this)">📝 Manage Quizzes</button>
+    <button class="ad-tab-btn" onclick="admSwitch('quiz-attempts', this)">👥 Student Attempts</button>
+    <button class="ad-tab-btn" onclick="admSwitch('quiz-scores', this)">⚖️ Adjust Scores</button>
+    <button class="ad-tab-btn" onclick="admSwitch('quiz-warnings', this)">
+        ⚠️ Warning Logs
+        <span class="ad-warn-pip" id="tab-warnings-pip" style="display: none;">0</span>
+    </button>
+</div>
+
+
+<!-- ════════════════════════════════════
+     PANEL: Manage Quiz
+     ════════════════════════════════════ -->
+<div id="adp-quiz-overview" class="ad-card ad-panel active">
+    <div class="ad-panel-head">
+        <div>
+            <h2 class="ad-panel-title">📝 Manage Quizzes</h2>
+            <p class="ad-panel-sub">Inspect, edit, or delete quizzes.</p>
+        </div>
+    </div>
+
+    <div class="ad-tbl-wrap">
+        <table class="ad-tbl">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Questions</th>
+                    <th>Time Limit</th>
+                    <th>Attempts</th>
+                    <th>Created</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for quiz in quizzes %}
+                <tr id="quiz-row-{{ quiz.id }}" class="quiz-overview-row">
+                    <td>
+                        <div class="ad-cell">
+                            <span class="ad-name" style="color: #4f46e5;">{{ quiz.title }}</span>
+                        </div>
+                    </td>
+                    <td><span class="ad-pill" style="background:#f0f3ff; color:#4f46e5; padding:3px 10px; border-radius:99px; font-weight:700;">{{ quiz.questions.count }} Qs</span></td>
+                    <td style="color: #475569; font-weight: 500;">⏱ {{ quiz.time_limit }} min</td>
+                    <td style="color: #1e293b; font-weight: 700;">{{ quiz.attempts.count }}</td>
+                    <td style="color: #94a3b8; font-size: 0.85rem;">{{ quiz.created_at|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if quiz.is_published %}
+                        <span class="ad-bdg ad-bdg-g">Published</span>
+                        {% else %}
+                        <span class="ad-bdg ad-bdg-y">Draft</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="ad-acts">
+                            <a href="{% url 'quiz_detail' quiz.id %}" class="ad-act ad-act-info">View Details</a>
+                            <a href="{% url 'edit_quiz' quiz.id %}" class="ad-act ad-act-warn">Edit</a>
+                            <a href="{% url 'delete_quiz' quiz.id %}" class="ad-act ad-act-danger confirm-link"
+                               data-title="Delete Quiz?" data-message="Are you sure you want to delete this quiz? This will remove all records related to it.">Delete</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="ad-mobile-cards">
+        {% for quiz in quizzes %}
+        <div class="ad-m-card quiz-overview-card" id="quiz-card-{{ quiz.id }}">
+            <span class="ad-m-card-title">{{ quiz.title }}</span>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Questions</span>
+                <span class="ad-m-card-val">{{ quiz.questions.count }} Qs</span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Time Limit</span>
+                <span class="ad-m-card-val">{{ quiz.time_limit }} min</span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Attempts</span>
+                <span class="ad-m-card-val">{{ quiz.attempts.count }}</span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Created</span>
+                <span class="ad-m-card-val">{{ quiz.created_at|date:"d/m/Y" }}</span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Status</span>
+                {% if quiz.is_published %}
+                <span class="ad-bdg ad-bdg-g">Published</span>
+                {% else %}
+                <span class="ad-bdg ad-bdg-y">Draft</span>
+                {% endif %}
+            </div>
+            <div class="ad-m-card-acts">
+                <a href="{% url 'quiz_detail' quiz.id %}" class="ad-act ad-act-info" style="flex:1; justify-content:center;">View</a>
+                <a href="{% url 'edit_quiz' quiz.id %}" class="ad-act ad-act-warn" style="flex:1; justify-content:center;">Edit</a>
+                <a href="{% url 'delete_quiz' quiz.id %}" class="ad-act ad-act-danger confirm-link" style="flex:1; justify-content:center;"
+                   data-title="Delete Quiz?" data-message="Are you sure?">Delete</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     PANEL: Manage Assignment
+     ════════════════════════════════════ -->
+<div id="adp-assignment-overview" class="ad-card ad-panel">
+    <div class="ad-panel-head">
+        <div>
+            <h2 class="ad-panel-title">📂 Manage Assignments</h2>
+            <p class="ad-panel-sub">Inspect, edit, or delete assignments.</p>
+        </div>
+    </div>
+
+    <div class="ad-tbl-wrap">
+        <table class="ad-tbl">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Total Marks</th>
+                    <th>Requirements</th>
+                    <th>Deadline</th>
+                    <th>Submissions</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in assignments %}
+                <tr id="assignment-row-{{ a.id }}" class="assignment-overview-row">
+                    <td>
+                        <div class="ad-cell">
+                            <span class="ad-name" style="color: #10b981;">{{ a.title }}</span>
+                        </div>
+                    </td>
+                    <td><span class="ad-bdg ad-bdg-b">{{ a.total_marks }} Marks</span></td>
+                    <td>
+                        {% if a.requirements_file %}
+                        <a href="{{ a.requirements_file.url }}" class="ad-act ad-act-info" download>
+                            📥 Download File
+                        </a>
+                        {% else %}
+                        <span style="color:#94a3b8; font-size:0.85rem; font-weight:500;">No file attached</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:#ef4444; font-weight:700;">
+                        ⏱ {{ a.deadline|date:"d/m/Y H:i" }}
+                    </td>
+                    <td style="color: #1e293b; font-weight: 700;">
+                        {{ a.submissions.count }} submissions
+                    </td>
+                    <td>
+                        <div class="ad-acts">
+                            <a href="{% url 'edit_assignment' a.id %}" class="ad-act ad-act-warn">Edit</a>
+                            <a href="{% url 'delete_assignment' a.id %}" class="ad-act ad-act-danger confirm-link"
+                               data-title="Delete Assignment?" data-message="Are you sure you want to delete this assignment? All submissions and marks will be lost.">Delete</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="ad-mobile-cards">
+        {% for a in assignments %}
+        <div class="ad-m-card assignment-overview-card" id="assignment-card-{{ a.id }}">
+            <span class="ad-m-card-title" style="color:#10b981;">{{ a.title }}</span>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Total Marks</span>
+                <span class="ad-m-card-val">{{ a.total_marks }} Marks</span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Requirements</span>
+                <span class="ad-m-card-val">
+                    {% if a.requirements_file %}
+                    <a href="{{ a.requirements_file.url }}" download style="color:#4f46e5; text-decoration:none; font-weight:700;">Download File</a>
+                    {% else %}
+                    None
+                    {% endif %}
+                </span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Deadline</span>
+                <span class="ad-m-card-val" style="color:#ef4444;">{{ a.deadline|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Submissions</span>
+                <span class="ad-m-card-val">{{ a.submissions.count }}</span>
+            </div>
+            <div class="ad-m-card-acts">
+                <a href="{% url 'edit_assignment' a.id %}" class="ad-act ad-act-warn" style="flex:1; justify-content:center;">Edit</a>
+                <a href="{% url 'delete_assignment' a.id %}" class="ad-act ad-act-danger confirm-link" style="flex:1; justify-content:center;"
+                   data-title="Delete Assignment?" data-message="Are you sure?">Delete</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     PANEL: Student Attempts
+     ════════════════════════════════════ -->
+<div id="adp-quiz-attempts" class="ad-card ad-panel">
+    <div class="ad-panel-head" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <div>
+            <h2 class="ad-panel-title">👥 Student Quiz Attempts</h2>
+            <p class="ad-panel-sub">Student marks and progress for the selected quiz.</p>
+        </div>
+        <div class="custom-select" data-type="quiz">
+            <div class="custom-select-trigger">
+                <span class="trigger-text">{% if quizzes.0 %}{{ quizzes.0.title }} (Quiz){% else %}Select Quiz{% endif %}</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="custom-select-options">
+                {% for q in quizzes %}
+                <div class="custom-option" data-value="{{ q.id }}">{{ q.title }} (Quiz)</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="ad-tbl-wrap">
+        <table class="ad-tbl" id="attempts-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Score</th>
+                    <th>Progress</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in all_attempts %}
+                <tr class="attempt-row" data-quiz-id="{{ attempt.quiz.id }}" data-is-submitted="{% if attempt.is_submitted %}true{% else %}false{% endif %}">
+                    <td>
+                        <div class="ad-cell">
+                            {% if attempt.student and not attempt.student.is_staff and attempt.student.student_profile.profile_image %}
+                            <img src="{{ attempt.student.student_profile.profile_image.url }}" class="ad-av-img" alt="{{ attempt.student_name }}">
+                            {% else %}
+                            <div class="ad-av">{{ attempt.student_name|slice:":1"|upper }}</div>
+                            {% endif %}
+                            <span class="ad-name">{{ attempt.student_name }}</span>
+                            {% if attempt.tab_switch_count > 0 %}
+                            <span class="ad-bdg ad-bdg-o" style="padding: 2px 6px; font-size: 0.72rem; margin-left: 0.5rem; display: inline-flex; align-items: center; gap: 2px;" title="Tab Switch Warnings">
+                                ⚠️ {{ attempt.tab_switch_count }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td><span class="ad-score">{{ attempt.score }}/{{ attempt.total_questions }}</span></td>
+                    <td>
+                        <div class="ad-prog-wrap">
+                            {% if attempt.total_questions > 0 %}
+                            <div class="ad-prog-bar">
+                                <div class="ad-prog-fill" data-score="{{ attempt.score }}" data-total="{{ attempt.total_questions }}"></div>
+                            </div>
+                            <span class="ad-prog-pct">{% widthratio attempt.score attempt.total_questions 100 %}%</span>
+                            {% else %}<span class="ad-prog-pct">0%</span>{% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if attempt.is_disqualified %}
+                        <span class="ad-bdg ad-bdg-r">Disqualified</span>
+                        {% elif attempt.is_submitted %}
+                        <span class="ad-bdg ad-bdg-g">Submitted</span>
+                        {% else %}
+                        <span class="ad-bdg ad-bdg-y">In Progress</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:#94a3b8; font-size:0.82rem;">{{ attempt.started_at|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <a href="{% url 'view_attempt' attempt.id %}" class="ad-act ad-act-info">Details</a>
+                            <button type="button" class="ad-act delete-attempt-btn" data-attempt-id="{{ attempt.id }}" style="background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="ad-mobile-cards" id="attempts-mobile-container">
+        {% for attempt in all_attempts %}
+        <div class="ad-m-card attempt-mobile-card" data-quiz-id="{{ attempt.quiz.id }}">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                {% if attempt.student and not attempt.student.is_staff and attempt.student.student_profile.profile_image %}
+                <img src="{{ attempt.student.student_profile.profile_image.url }}" class="ad-av-img" alt="{{ attempt.student_name }}">
+                {% else %}
+                <div class="ad-av">{{ attempt.student_name|slice:":1"|upper }}</div>
+                {% endif %}
+                <span class="ad-name" style="font-size:1rem;">{{ attempt.student_name }}</span>
+                {% if attempt.tab_switch_count > 0 %}
+                <span class="ad-bdg ad-bdg-o" style="padding: 2px 6px; font-size: 0.72rem; margin-left: 0.5rem; display: inline-flex; align-items: center; gap: 2px;" title="Tab Switch Warnings">
+                    ⚠️ {{ attempt.tab_switch_count }}
+                </span>
+                {% endif %}
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Score</span>
+                <span class="ad-m-card-val ad-score">{{ attempt.score }}/{{ attempt.total_questions }}</span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Status</span>
+                {% if attempt.is_disqualified %}
+                <span class="ad-bdg ad-bdg-r">Disqualified</span>
+                {% elif attempt.is_submitted %}
+                <span class="ad-bdg ad-bdg-g">Submitted</span>
+                {% else %}
+                <span class="ad-bdg ad-bdg-y">In Progress</span>
+                {% endif %}
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Started</span>
+                <span class="ad-m-card-val" style="font-size:0.75rem; color:#94a3b8;">{{ attempt.started_at|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="ad-m-card-acts" style="display: flex; gap: 0.5rem; width: 100%;">
+                <a href="{% url 'view_attempt' attempt.id %}" class="ad-act ad-act-info" style="flex:1; justify-content:center;">View Details</a>
+                <button type="button" class="ad-act delete-attempt-btn" data-attempt-id="{{ attempt.id }}" style="background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; padding: 0.6rem 1rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
+                    <i class="fas fa-trash-alt" style="margin-right: 5px;"></i> Delete
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Empty State -->
+    <div class="ad-empty" id="attempts-empty-state" style="display:none;">
+        <div class="ad-empty-ico">🎓</div>
+        <h3>No Attempts Found</h3>
+        <p>No students have started this quiz yet.</p>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     PANEL: Adjust Scores
+     ════════════════════════════════════ -->
+<div id="adp-quiz-scores" class="ad-card ad-panel">
+    <div class="ad-panel-head" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <div>
+            <h2 class="ad-panel-title">🎯 Adjust Student Scores</h2>
+            <p class="ad-panel-sub">Manually alter scores for completed attempts.</p>
+        </div>
+        <div class="custom-select" data-type="quiz">
+            <div class="custom-select-trigger">
+                <span class="trigger-text">{% if quizzes.0 %}{{ quizzes.0.title }} (Quiz){% else %}Select Quiz{% endif %}</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="custom-select-options">
+                {% for q in quizzes %}
+                <div class="custom-option" data-value="{{ q.id }}">{{ q.title }} (Quiz)</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="ad-tbl-wrap">
+        <table class="ad-tbl" id="scores-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Current Score</th>
+                    <th>Adjust Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in all_attempts %}
+                {% if attempt.is_submitted %}
+                <tr id="row-{{ attempt.id }}" class="score-adjust-row" data-quiz-id="{{ attempt.quiz.id }}">
+                    <td>
+                        <div class="ad-cell">
+                            {% if attempt.student and not attempt.student.is_staff and attempt.student.student_profile.profile_image %}
+                            <img src="{{ attempt.student.student_profile.profile_image.url }}" class="ad-av-img">
+                            {% else %}
+                            <div class="ad-av">{{ attempt.student_name|slice:":1"|upper }}</div>
+                            {% endif %}
+                            <span class="ad-name">{{ attempt.student_name }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span id="score-{{ attempt.id }}" class="ad-score">{{ attempt.score }}/{{ attempt.total_questions }}</span>
+                        <span id="pct-{{ attempt.id }}" class="ad-score-s">({% widthratio attempt.score attempt.total_questions 100 %}%)</span>
+                    </td>
+                    <td>
+                        <div class="ad-adj">
+                            <button onclick="localAdjust({{ attempt.id }}, 'minus')" class="ad-adj-btn ad-adj-m">−</button>
+                            <input type="number" id="amt-d-{{ attempt.id }}" value="{{ attempt.score }}" min="0" max="{{ attempt.total_questions }}" class="ad-adj-inp ad-amt-{{ attempt.id }}">
+                            <button onclick="localAdjust({{ attempt.id }}, 'add')" class="ad-adj-btn ad-adj-p">＋</button>
+                            <button onclick="setScore({{ attempt.id }})" class="ad-adj-set">Set</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="ad-mobile-cards" id="scores-mobile-container">
+        {% for attempt in all_attempts %}
+        {% if attempt.is_submitted %}
+        <div class="ad-m-card score-adjust-mobile-card" id="m-row-{{ attempt.id }}" data-quiz-id="{{ attempt.quiz.id }}">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                {% if attempt.student and not attempt.student.is_staff and attempt.student.student_profile.profile_image %}
+                <img src="{{ attempt.student.student_profile.profile_image.url }}" class="ad-av-img">
+                {% else %}
+                <div class="ad-av">{{ attempt.student_name|slice:":1"|upper }}</div>
+                {% endif %}
+                <span class="ad-name" style="font-size:1rem;">{{ attempt.student_name }}</span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Current Score</span>
+                <span class="ad-m-card-val">
+                    <span id="m-score-{{ attempt.id }}" class="ad-score">{{ attempt.score }}/{{ attempt.total_questions }}</span>
+                    <span id="m-pct-{{ attempt.id }}" class="ad-score-s">({% widthratio attempt.score attempt.total_questions 100 %}%)</span>
+                </span>
+            </div>
+            <div class="ad-m-card-acts" style="flex-direction:column; gap:1rem; border-top:1px dashed #e2e8f0; padding-top:1rem;">
+                <div class="ad-adj" style="justify-content:center; width:100%; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <button onclick="localAdjust({{ attempt.id }}, 'minus')" class="ad-adj-btn ad-adj-m">−</button>
+                        <input type="number" id="amt-m-{{ attempt.id }}" value="{{ attempt.score }}" min="0" max="{{ attempt.total_questions }}" class="ad-adj-inp ad-amt-{{ attempt.id }}">
+                        <button onclick="localAdjust({{ attempt.id }}, 'add')" class="ad-adj-btn ad-adj-p">＋</button>
+                    </div>
+                    <button onclick="setScore({{ attempt.id }})" class="ad-adj-set" style="flex:1;">Set Marks</button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Empty State -->
+    <div class="ad-empty" id="scores-empty-state" style="display:none;">
+        <div class="ad-empty-ico">📋</div>
+        <h3>No Submitted Attempts</h3>
+        <p>No student scores are available to adjust yet.</p>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     PANEL: Warning Logs
+     ════════════════════════════════════ -->
+<div id="adp-quiz-warnings" class="ad-card ad-panel">
+    <div class="ad-panel-head" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <div>
+            <h2 class="ad-panel-title">⚠️ Student Warning Logs</h2>
+            <p class="ad-panel-sub">Anti-cheat warnings tracked for the selected quiz.</p>
+        </div>
+        <div class="custom-select" data-type="quiz">
+            <div class="custom-select-trigger">
+                <span class="trigger-text">{% if quizzes.0 %}{{ quizzes.0.title }} (Quiz){% else %}Select Quiz{% endif %}</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="custom-select-options">
+                {% for q in quizzes %}
+                <div class="custom-option" data-value="{{ q.id }}">{{ q.title }} (Quiz)</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="ad-tbl-wrap">
+        <table class="ad-tbl" id="warnings-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Violation</th>
+                    <th>IP Address</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for warning in all_warnings %}
+                <tr class="warning-row" data-quiz-id="{{ warning.attempt.quiz.id }}">
+                    <td>
+                        <div class="ad-cell">
+                            {% if warning.attempt.student and not warning.attempt.student.is_staff and warning.attempt.student.student_profile.profile_image %}
+                            <img src="{{ warning.attempt.student.student_profile.profile_image.url }}" class="ad-av-img" alt="{{ warning.attempt.student_name }}">
+                            {% else %}
+                            <div class="ad-av">{{ warning.attempt.student_name|slice:":1"|upper }}</div>
+                            {% endif %}
+                            <span class="ad-name">{{ warning.attempt.student_name }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if warning.warning_type == 'tab_switch' %}
+                        <span class="ad-bdg ad-bdg-o">🔄 Tab Switch</span>
+                        {% elif warning.warning_type == 'page_refresh' %}
+                        <span class="ad-bdg ad-bdg-b">🔃 Page Refresh</span>
+                        {% elif warning.warning_type == 'page_exit' %}
+                        <span class="ad-bdg ad-bdg-r">❌ Page Exit</span>
+                        {% elif warning.warning_type == 'focus_lost' %}
+                        <span class="ad-bdg ad-bdg-y">👁️ Focus Lost</span>
+                        {% endif %}
+                    </td>
+                    <td><code class="ad-ip">{{ warning.ip_address }}</code></td>
+                    <td style="color:#94a3b8; font-size:0.82rem;">{{ warning.timestamp|date:"d/m/Y H:i:s" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="ad-mobile-cards" id="warnings-mobile-container">
+        {% for warning in all_warnings %}
+        <div class="ad-m-card warning-mobile-card" data-quiz-id="{{ warning.attempt.quiz.id }}" style="border-left: 4px solid #ef4444;">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                {% if warning.attempt.student and not warning.attempt.student.is_staff and warning.attempt.student.student_profile.profile_image %}
+                <img src="{{ warning.attempt.student.student_profile.profile_image.url }}" class="ad-av-img" alt="{{ warning.attempt.student_name }}">
+                {% else %}
+                <div class="ad-av">{{ warning.attempt.student_name|slice:":1"|upper }}</div>
+                {% endif %}
+                <span class="ad-m-card-title" style="margin: 0; font-size: 1rem;">{{ warning.attempt.student_name }}</span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Violation</span>
+                <span class="ad-m-card-val">
+                    {% if warning.warning_type == 'tab_switch' %}
+                    <span class="ad-bdg ad-bdg-o">🔄 Tab Switch</span>
+                    {% elif warning.warning_type == 'page_refresh' %}
+                    <span class="ad-bdg ad-bdg-b">🔃 Page Refresh</span>
+                    {% elif warning.warning_type == 'page_exit' %}
+                    <span class="ad-bdg ad-bdg-r">❌ Page Exit</span>
+                    {% elif warning.warning_type == 'focus_lost' %}
+                    <span class="ad-bdg ad-bdg-y">👁️ Focus Lost</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">IP Address</span>
+                <code class="ad-ip">{{ warning.ip_address }}</code>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Time</span>
+                <span class="ad-m-card-val" style="font-size:0.75rem; color:#94a3b8;">{{ warning.timestamp|date:"d/m/Y H:i:s" }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Empty State -->
+    <div class="ad-empty" id="warnings-empty-state" style="display:none;">
+        <div class="ad-empty-ico">🛡️</div>
+        <h3>Clean Record!</h3>
+        <p>No suspicious tab activity or warnings captured for this quiz.</p>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     PANEL: Assignment Submissions & Grading
+     ════════════════════════════════════ -->
+<div id="adp-assignment-submissions" class="ad-card ad-panel">
+    <div class="ad-panel-head" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <div>
+            <h2 class="ad-panel-title">📥 Submissions & Grading</h2>
+            <p class="ad-panel-sub">Evaluate, grade, and publish student homework files.</p>
+        </div>
+        <div class="custom-select" data-type="assignment">
+            <div class="custom-select-trigger">
+                <span class="trigger-text">{% if assignments.0 %}{{ assignments.0.title }} (Assignment){% else %}Select Assignment{% endif %}</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="custom-select-options">
+                {% for a in assignments %}
+                <div class="custom-option" data-value="{{ a.id }}">{{ a.title }} (Assignment)</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="ad-tbl-wrap">
+        <table class="ad-tbl" id="submissions-table">
+            <thead>
+                <tr>
+                    <th>Student Info</th>
+                    <th>Submission Date</th>
+                    <th>Files / Links</th>
+                    <th>Status & Marks</th>
+                    <th>Grading Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in all_submissions %}
+                <tr class="submission-row" data-assignment-id="{{ sub.assignment.id }}" data-is-graded="{% if sub.is_graded %}true{% else %}false{% endif %}">
+                    <td>
+                        <div class="ad-cell">
+                            {% if sub.student and not sub.student.is_staff and sub.student.student_profile.profile_image %}
+                            <img src="{{ sub.student.student_profile.profile_image.url }}" class="ad-av-img" alt="{{ sub.student.get_full_name }}">
+                            {% else %}
+                            <div class="ad-av">
+                                {{ sub.student.first_name|slice:":1" }}{{ sub.student.last_name|slice:":1" }}
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div class="ad-name">{{ sub.student.get_full_name }}</div>
+                                {% if not sub.student.is_staff and sub.student.student_profile %}
+                                <div class="ad-sub">ID: {{ sub.student.student_profile.student_id }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color:#64748b; font-size:0.85rem;">
+                        {{ sub.submitted_at|date:"d/m/Y" }}<br>
+                        <span style="font-size:0.75rem; color:#94a3b8;">at {{ sub.submitted_at|date:"h:i A" }}</span>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:0.5rem; align-items:center;">
+                            {% if sub.file %}
+                            <a href="{{ sub.file.url }}" class="ad-act ad-act-info" download title="Download Submitted File">
+                                📂 Download
+                            </a>
+                            {% endif %}
+                            {% if sub.drive_link %}
+                            <a href="{{ sub.drive_link }}" target="_blank" class="ad-act ad-act-info" style="background:#f0fdf4; color:#16a34a; border-color:#bbf7d0;" title="View Drive Link">
+                                🔗 Google Drive
+                            </a>
+                            {% endif %}
+                            {% if not sub.file and not sub.drive_link %}
+                            <span style="color:#94a3b8; font-size:0.85rem;">No files attached</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display:flex; flex-direction:column; gap:0.3rem;">
+                            {% if sub.is_published %}
+                                <span class="ad-bdg ad-bdg-g" style="width:fit-content;">Published</span>
+                                <div style="font-weight:800; font-size:0.95rem;">{{ sub.marks }} / {{ sub.assignment.total_marks }}</div>
+                            {% elif sub.is_graded %}
+                                <span class="ad-bdg ad-bdg-b" style="width:fit-content;">Graded (Private)</span>
+                                <div style="font-weight:800; font-size:0.95rem;">{{ sub.marks }} / {{ sub.assignment.total_marks }}</div>
+                            {% else %}
+                                <span class="ad-bdg ad-bdg-y" style="width:fit-content;">Pending evaluation</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="ad-acts">
+                            <button onclick="openGradeModal({{ sub.id }}, '{{ sub.student.get_full_name }}', '{{ sub.marks }}', '{{ sub.feedback|escapejs }}', '{{ sub.assignment.total_marks }}')" 
+                                    class="ad-act ad-act-info" style="font-weight:800;" title="Assign Marks">
+                                ✍️ Grade
+                            </button>
+                            {% if sub.is_graded and not sub.is_published %}
+                            <a href="{% url 'publish_result' sub.id %}" class="ad-act ad-act-info" style="background:#10b981; color:white; border-color:#10b981;" title="Publish Marks to Student">
+                                📢 Publish
+                            </a>
+                            {% endif %}
+                            {% if sub.is_graded %}
+                            <button onclick="openConfirmResetModal('{% url 'cancel_grade' sub.id %}')" class="ad-act ad-act-danger" title="Reset Marks & Feedback">
+                                🔄 Reset
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="ad-mobile-cards" id="submissions-mobile-container">
+        {% for sub in all_submissions %}
+        <div class="ad-m-card submission-mobile-card" data-assignment-id="{{ sub.assignment.id }}" data-is-graded="{% if sub.is_graded %}true{% else %}false{% endif %}">
+            <span class="ad-m-card-title">{{ sub.student.get_full_name }}</span>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Submitted</span>
+                <span class="ad-m-card-val" style="font-size:0.8rem; color:#64748b;">{{ sub.submitted_at|date:"d/m/Y h:i A" }}</span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Files</span>
+                <span class="ad-m-card-val">
+                    {% if sub.file %}
+                    <a href="{{ sub.file.url }}" download style="color:#4f46e5; text-decoration:none; font-weight:700; margin-right:8px;">Download</a>
+                    {% endif %}
+                    {% if sub.drive_link %}
+                    <a href="{{ sub.drive_link }}" target="_blank" style="color:#16a34a; text-decoration:none; font-weight:700;">Drive Link</a>
+                    {% endif %}
+                    {% if not sub.file and not sub.drive_link %}
+                    None
+                    {% endif %}
+                </span>
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Status</span>
+                {% if sub.is_published %}
+                <span class="ad-bdg ad-bdg-g">Published</span>
+                {% elif sub.is_graded %}
+                <span class="ad-bdg ad-bdg-b">Graded</span>
+                {% else %}
+                <span class="ad-bdg ad-bdg-y">Pending</span>
+                {% endif %}
+            </div>
+            <div class="ad-m-card-row">
+                <span class="ad-m-card-label">Marks</span>
+                <span class="ad-m-card-val">{{ sub.marks }} / {{ sub.assignment.total_marks }}</span>
+            </div>
+            <div class="ad-m-card-acts">
+                <button onclick="openGradeModal({{ sub.id }}, '{{ sub.student.get_full_name }}', '{{ sub.marks }}', '{{ sub.feedback|escapejs }}', '{{ sub.assignment.total_marks }}')" 
+                        class="ad-act ad-act-info" style="flex:1; justify-content:center;">✍️ Grade</button>
+                {% if sub.is_graded and not sub.is_published %}
+                <a href="{% url 'publish_result' sub.id %}" class="ad-act ad-act-info" style="background:#10b981; color:white; border-color:#10b981; flex:1; justify-content:center;">📢 Publish</a>
+                {% endif %}
+                {% if sub.is_graded %}
+                <button onclick="openConfirmResetModal('{% url 'cancel_grade' sub.id %}')" class="ad-act ad-act-danger" style="flex:1; justify-content:center;">🔄 Reset</button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Empty State -->
+    <div class="ad-empty" id="submissions-empty-state" style="display:none;">
+        <div class="ad-empty-ico">📥</div>
+        <h3>No Submissions</h3>
+        <p>No student submissions have been posted for this assignment yet.</p>
+    </div>
+</div>
+
+
+<!-- ── Modern Grading Modal ── -->
+<div id="gradeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter: blur(8px); z-index:2000; align-items:center; justify-content:center; animation: fadeInModal 0.3s ease;">
+    <div style="width:90%; max-width:500px; background:white; border-radius:1.5rem; padding:2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: linear-gradient(to right, #6366f1, #a855f7);"></div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+            <div>
+                <h3 id="modalStudentName" style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 0;">Grading Submission</h3>
+                <p style="color: #64748b; margin-top: 0.25rem; font-size: 0.9rem;">Assign marks and feedback.</p>
+            </div>
+            <button onclick="closeGradeModal()" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 8px; color: #64748b; cursor: pointer; transition: all 0.2s;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="gradeForm" method="POST">
+            {% csrf_token %}
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem;">Obtained Marks (out of <span id="maxMarks">100</span>)</label>
+                <input type="number" name="marks" id="modalMarks" min="0" required
+                       style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 1rem; transition: all 0.2s; outline: none; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 2rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem;">Instructor's Feedback</label>
+                <textarea name="feedback" id="modalFeedback" rows="4" placeholder="Well done! Excellent work on the..." 
+                          style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 1rem; transition: all 0.2s; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button type="button" class="btn-cancel" onclick="closeGradeModal()" style="flex: 1; padding: 0.9rem; border-radius: 12px; background: #f8fafc; border: 1.5px solid #e2e8f0; color: #475569; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                    Cancel
+                </button>
+                <button type="submit" style="flex: 2; padding: 0.9rem; border-radius: 12px; background: #6366f1; border: none; color: white; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ── Confirm Reset Modal ── -->
+<div id="confirmResetModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter: blur(8px); z-index:2000; align-items:center; justify-content:center; animation: fadeInModal 0.3s ease;">
+    <div style="width:90%; max-width:400px; background:white; border-radius:1.5rem; padding:2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); position: relative; overflow: hidden; text-align: center;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: #ef4444;"></div>
+        
+        <div style="width: 64px; height: 64px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0.5rem auto 1.5rem; font-size: 1.8rem; color: #ef4444;">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 0 0 0.5rem;">Reset Grade?</h3>
+        <p style="color: #64748b; font-size: 0.95rem; margin: 0 0 2rem; line-height: 1.5;">This will clear this student's marks and feedback, setting their status back to Pending. Are you sure?</p>
+        
+        <div style="display: flex; gap: 1rem;">
+            <button type="button" class="btn-cancel" onclick="closeConfirmResetModal()" style="flex: 1; padding: 0.9rem; border-radius: 12px; background: #f8fafc; border: 1.5px solid #e2e8f0; color: #475569; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                Cancel
+            </button>
+            <a id="confirmResetLink" href="#" style="flex: 1.2; padding: 0.9rem; border-radius: 12px; background: #ef4444; border: none; color: white; font-weight: 700; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);">
+                Yes, Reset
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes fadeInModal {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .btn-cancel:hover {
+        background: #f1f5f9 !important;
+        color: #1e293b !important;
+    }
+</style>
+
+
+<!-- ─── Dashboard Filtering Logic ─── -->
+<script>
+    // Global State variables
+    let currentQuizId = "{% if running_quiz %}{{ running_quiz.id }}{% else %}null{% endif %}";
+    let currentAssignmentId = "{% if running_assignment %}{{ running_assignment.id }}{% else %}null{% endif %}";
+    let currentTabName = "quiz-overview";
+
+    // Switch between panels
+    function admSwitch(panelName, btn) {
+        try {
+            console.log('Switching panel to:', panelName);
+            currentTabName = panelName;
+            
+            // Hide all panels
+            const panels = document.querySelectorAll('.ad-panel');
+            panels.forEach(p => {
+                p.classList.remove('active');
+            });
+
+            // Deactivate all tab buttons
+            const buttons = document.querySelectorAll('.ad-tab-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+
+            // Activate specific panel
+            const targetPanel = document.getElementById('adp-' + panelName);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+            }
+
+            // Activate specific button
+            if (btn) btn.classList.add('active');
+
+            // Update stats dynamically based on the current active tab
+            updateStatsForTab();
+
+        } catch (err) {
+            console.error('Tab switch error:', err);
+        }
+    }
+
+    // Setup Custom Select Interactivity
+    function setupCustomSelects() {
+        document.querySelectorAll('.custom-select').forEach(wrapper => {
+            const trigger = wrapper.querySelector('.custom-select-trigger');
+            const options = wrapper.querySelectorAll('.custom-option');
+            const type = wrapper.dataset.type; // 'quiz' or 'assignment'
+
+            // Toggle dropdown
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Close other open selects
+                document.querySelectorAll('.custom-select').forEach(other => {
+                    if (other !== wrapper) other.classList.remove('open');
+                });
+                wrapper.classList.toggle('open');
+            });
+
+            // Handle option click
+            options.forEach(opt => {
+                opt.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const value = this.dataset.value;
+                    if (type === 'quiz') {
+                        syncSelectedQuiz(value);
+                    } else if (type === 'assignment') {
+                        syncSelectedAssignment(value);
+                    }
+                    wrapper.classList.remove('open');
+                });
+            });
+        });
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.custom-select').forEach(wrapper => {
+                wrapper.classList.remove('open');
+            });
+        });
+    }
+
+    // Synchronize select dropdowns for Quiz
+    function syncSelectedQuiz(quizId) {
+        if (!quizId || quizId === 'null') return;
+        currentQuizId = quizId.toString();
+        
+        // Sync custom selects
+        document.querySelectorAll('.custom-select[data-type="quiz"]').forEach(wrapper => {
+            const options = wrapper.querySelectorAll('.custom-option');
+            const triggerText = wrapper.querySelector('.trigger-text');
+            options.forEach(opt => {
+                if (opt.dataset.value === currentQuizId) {
+                    opt.classList.add('selected');
+                    triggerText.innerText = opt.innerText.replace('✓', '').trim();
+                } else {
+                    opt.classList.remove('selected');
+                }
+            });
+        });
+        updateFilteredData();
+        updateStatsForTab();
+    }
+
+    // Synchronize select dropdowns for Assignment
+    function syncSelectedAssignment(assignmentId) {
+        if (!assignmentId || assignmentId === 'null') return;
+        currentAssignmentId = assignmentId.toString();
+        
+        // Sync custom selects
+        document.querySelectorAll('.custom-select[data-type="assignment"]').forEach(wrapper => {
+            const options = wrapper.querySelectorAll('.custom-option');
+            const triggerText = wrapper.querySelector('.trigger-text');
+            options.forEach(opt => {
+                if (opt.dataset.value === currentAssignmentId) {
+                    opt.classList.add('selected');
+                    triggerText.innerText = opt.innerText.replace('✓', '').trim();
+                } else {
+                    opt.classList.remove('selected');
+                }
+            });
+        });
+        updateFilteredData();
+        updateStatsForTab();
+    }
+
+    // Update the stat cards at the top dynamically based on active tab and selected item
+    function updateStatsForTab() {
+        // Update quiz attempts count dynamically based on currentQuizId
+        let visibleAttemptsCount = 0;
+        document.querySelectorAll('.attempt-row').forEach(row => {
+            if (row.dataset.quizId === currentQuizId && row.dataset.isSubmitted === 'true') {
+                visibleAttemptsCount++;
+            }
+        });
+        const cardVal = document.getElementById('stat-card-2-val');
+        if (cardVal) {
+            animateValue('stat-card-2-val', visibleAttemptsCount);
+        }
+
+        // Update assignment attempts count dynamically based on currentAssignmentId
+        let visibleSubmissionsCount = 0;
+        document.querySelectorAll('.submission-row').forEach(row => {
+            if (row.dataset.assignmentId === currentAssignmentId) {
+                visibleSubmissionsCount++;
+            }
+        });
+        const assignVal = document.getElementById('stat-card-assignment-val');
+        if (assignVal) {
+            animateValue('stat-card-assignment-val', visibleSubmissionsCount);
+        }
+
+        // Update warnings count dynamically based on currentQuizId
+        let visibleWarningsCount = 0;
+        document.querySelectorAll('.warning-row').forEach(row => {
+            if (row.dataset.quizId === currentQuizId) {
+                visibleWarningsCount++;
+            }
+        });
+        const warnVal = document.getElementById('stat-card-3-val');
+        if (warnVal) {
+            animateValue('stat-card-3-val', visibleWarningsCount);
+        }
+    }
+
+    function updateFilteredData() {
+        // --- FILTER QUIZZES ---
+        
+        // A. Manage Quiz table (Always show all quizzes)
+        const quizOverviewRows = document.querySelectorAll('.quiz-overview-row');
+        quizOverviewRows.forEach(row => {
+            row.style.display = '';
+        });
+        const quizOverviewCards = document.querySelectorAll('.quiz-overview-card');
+        quizOverviewCards.forEach(card => {
+            card.style.display = 'block';
+        });
+
+        // B. Attempts table filtering
+        let visibleAttemptsCount = 0;
+        const attemptRows = document.querySelectorAll('.attempt-row');
+        attemptRows.forEach(row => {
+            if (row.dataset.quizId === currentQuizId) {
+                row.style.display = '';
+                visibleAttemptsCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        const attemptCards = document.querySelectorAll('.attempt-mobile-card');
+        attemptCards.forEach(card => {
+            card.style.display = (card.dataset.quizId === currentQuizId) ? 'block' : 'none';
+        });
+
+        // C. Adjust Scores table filtering
+        const scoreRows = document.querySelectorAll('.score-adjust-row');
+        scoreRows.forEach(row => {
+            row.style.display = (row.dataset.quizId === currentQuizId) ? '' : 'none';
+        });
+        const scoreCards = document.querySelectorAll('.score-adjust-mobile-card');
+        scoreCards.forEach(card => {
+            card.style.display = (card.dataset.quizId === currentQuizId) ? 'block' : 'none';
+        });
+
+        // D. Warnings table filtering
+        let visibleWarningsCount = 0;
+        const warningRows = document.querySelectorAll('.warning-row');
+        warningRows.forEach(row => {
+            if (row.dataset.quizId === currentQuizId) {
+                row.style.display = '';
+                visibleWarningsCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        const warningCards = document.querySelectorAll('.warning-mobile-card');
+        warningCards.forEach(card => {
+            card.style.display = (card.dataset.quizId === currentQuizId) ? 'block' : 'none';
+        });
+
+        // E. Show / Hide empty states
+        document.getElementById('attempts-empty-state').style.display = (visibleAttemptsCount === 0) ? 'block' : 'none';
+        document.getElementById('attempts-table').style.display = (visibleAttemptsCount === 0) ? 'none' : '';
+        document.getElementById('attempts-mobile-container').style.display = (visibleAttemptsCount === 0) ? 'none' : '';
+
+        const scoreRowsVisible = Array.from(scoreRows).filter(r => r.style.display !== 'none').length;
+        document.getElementById('scores-empty-state').style.display = (scoreRowsVisible === 0) ? 'block' : 'none';
+        document.getElementById('scores-table').style.display = (scoreRowsVisible === 0) ? 'none' : '';
+        document.getElementById('scores-mobile-container').style.display = (scoreRowsVisible === 0) ? 'none' : '';
+
+        document.getElementById('warnings-empty-state').style.display = (visibleWarningsCount === 0) ? 'block' : 'none';
+        document.getElementById('warnings-table').style.display = (visibleWarningsCount === 0) ? 'none' : '';
+        document.getElementById('warnings-mobile-container').style.display = (visibleWarningsCount === 0) ? 'none' : '';
+
+        // Update warning logs count indicator on the tab pip
+        const warningsPip = document.getElementById('tab-warnings-pip');
+        if (visibleWarningsCount > 0) {
+            warningsPip.innerText = visibleWarningsCount;
+            warningsPip.style.display = 'inline-block';
+        } else {
+            warningsPip.style.display = 'none';
+        }
+
+
+        // --- FILTER ASSIGNMENTS ---
+
+        // A. Manage Assignment table (Always show all assignments)
+        const assignmentOverviewRows = document.querySelectorAll('.assignment-overview-row');
+        assignmentOverviewRows.forEach(row => {
+            row.style.display = '';
+        });
+        const assignmentOverviewCards = document.querySelectorAll('.assignment-overview-card');
+        assignmentOverviewCards.forEach(card => {
+            card.style.display = 'block';
+        });
+
+        // B. Submissions table & cards filtering
+        let visibleSubmissionsCount = 0;
+        let gradedSubmissionsCount = 0;
+        const submissionRows = document.querySelectorAll('.submission-row');
+        submissionRows.forEach(row => {
+            if (row.dataset.assignmentId === currentAssignmentId) {
+                row.style.display = '';
+                visibleSubmissionsCount++;
+                if (row.dataset.isGraded === 'true') {
+                    gradedSubmissionsCount++;
+                }
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        const submissionCards = document.querySelectorAll('.submission-mobile-card');
+        submissionCards.forEach(card => {
+            card.style.display = (card.dataset.assignmentId === currentAssignmentId) ? 'block' : 'none';
+        });
+
+        // C. Show / Hide empty states
+        document.getElementById('submissions-empty-state').style.display = (visibleSubmissionsCount === 0) ? 'block' : 'none';
+        document.getElementById('submissions-table').style.display = (visibleSubmissionsCount === 0) ? 'none' : '';
+        document.getElementById('submissions-mobile-container').style.display = (visibleSubmissionsCount === 0) ? 'none' : '';
+
+        // D. Refresh stat cards labels and values
+        updateStatsForTab();
+    }
+
+    // Smooth counter animation for numbers
+    function animateValue(objId, endVal) {
+        const obj = document.getElementById(objId);
+        if (!obj) return;
+        let startVal = parseInt(obj.innerText) || 0;
+        if (startVal === endVal) {
+            obj.innerText = endVal;
+            return;
+        }
+        let duration = 300; // ms
+        let startTime = null;
+
+        function step(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+            obj.innerText = Math.floor(progress * (endVal - startVal) + startVal);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            } else {
+                obj.innerText = endVal;
+            }
+        }
+        window.requestAnimationFrame(step);
+    }
+
+    /* ── Progress bar percentages on load ─────── */
+    document.querySelectorAll('.ad-prog-fill[data-score]').forEach(function(el) {
+        var pct = Math.round((+el.dataset.score / (+el.dataset.total || 1)) * 100);
+        el.style.width = pct + '%';
+    });
+
+    /* ── CSRF and Score adjustment AJAX (copied from original) ─────── */
+    function getCsrfToken() {
+        const el = document.querySelector('[name=csrfmiddlewaretoken]');
+        return el ? el.value : getCookie('csrftoken');
+    }
+
+    function getCookie(name) {
+        let v = null;
+        document.cookie && document.cookie.split(';').forEach(c => {
+            c = c.trim();
+            if (c.startsWith(name + '=')) v = decodeURIComponent(c.slice(name.length + 1));
+        });
+        return v;
+    }
+
+    function localAdjust(id, action) {
+        const mobileInput = document.getElementById('amt-m-' + id);
+        const desktopInput = document.getElementById('amt-d-' + id);
+        
+        const adjustInput = (input) => {
+            if (!input) return;
+            let val = parseInt(input.value);
+            if (isNaN(val)) val = 0;
+            const min = parseInt(input.min);
+            const max = parseInt(input.max);
+            
+            if (action === 'add') {
+                val = isNaN(max) ? val + 1 : Math.min(val + 1, max);
+            } else if (action === 'minus') {
+                val = isNaN(min) ? Math.max(val - 1, 0) : Math.max(val - 1, min);
+            }
+            input.value = val;
+        };
+        
+        adjustInput(mobileInput);
+        adjustInput(desktopInput);
+    }
+
+    function getAmount(id) { 
+        const mobileInput = document.getElementById('amt-m-' + id);
+        const desktopInput = document.getElementById('amt-d-' + id);
+        if (window.innerWidth <= 768 && mobileInput) {
+            const val = parseInt(mobileInput.value);
+            return isNaN(val) ? 1 : val;
+        }
+        if (desktopInput) {
+            const val = parseInt(desktopInput.value);
+            return isNaN(val) ? 1 : val;
+        }
+        return 1; 
+    }
+
+    function adjustScore(id, action) {
+        const amt = getAmount(id);
+        fetch(`/attempt/${id}/adjust-score/`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-CSRFToken': getCsrfToken() 
+            },
+            body: JSON.stringify({ action: action, amount: amt })
+        })
+        .then(r => {
+            if (!r.ok) throw new Error('Server status ' + r.status);
+            return r.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const sText = data.new_score + '/' + data.total;
+                const pText = '(' + data.percentage + '%)';
+                
+                const sEl = document.getElementById('score-' + id);
+                const pEl = document.getElementById('pct-' + id);
+                if(sEl) sEl.textContent = sText;
+                if(pEl) pEl.textContent = pText;
+
+                const msEl = document.getElementById('m-score-' + id);
+                const mpEl = document.getElementById('m-pct-' + id);
+                if(msEl) msEl.textContent = sText;
+                if(mpEl) mpEl.textContent = pText;
+
+                flashRow(id, action);
+            } else {
+                alert('Failed to adjust score: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error: Could not adjust score.');
+        });
+    }
+
+    function setScore(id) {
+        const amt = getAmount(id);
+        fetch(`/attempt/${id}/adjust-score/`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-CSRFToken': getCsrfToken() 
+            },
+            body: JSON.stringify({ action: 'set', amount: amt })
+        })
+        .then(r => {
+            if (!r.ok) throw new Error('Server status ' + r.status);
+            return r.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const sText = data.new_score + '/' + data.total;
+                const pText = '(' + data.percentage + '%)';
+
+                const sEl = document.getElementById('score-' + id);
+                const pEl = document.getElementById('pct-' + id);
+                if(sEl) sEl.textContent = sText;
+                if(pEl) pEl.textContent = pText;
+
+                const msEl = document.getElementById('m-score-' + id);
+                const mpEl = document.getElementById('m-pct-' + id);
+                if(msEl) msEl.textContent = sText;
+                if(mpEl) mpEl.textContent = pText;
+
+                flashRow(id, 'set');
+            } else {
+                alert('Failed to set score: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error: Could not set score.');
+        });
+    }
+
+    function flashRow(id, action) {
+        const row = document.getElementById('row-' + id);
+        const mCard = document.getElementById('m-row-' + id);
+        const c = action === 'add' ? '#f0fdf4' : action === 'minus' ? '#fef2f2' : '#eff6ff';
+        
+        if(row) {
+            row.style.transition = 'background .2s';
+            row.style.background = c;
+            setTimeout(() => row.style.background = '', 1200);
+        }
+        if(mCard) {
+            mCard.style.transition = 'background .2s';
+            mCard.style.background = c;
+            setTimeout(() => mCard.style.background = '', 1200);
+        }
+    }
+
+    function triggerCleanup() {
+        if (!confirm('Are you sure you want to clean up duplicate in-progress attempts? This will keep only the best attempt for each student.')) {
+            return;
+        }
+        fetch('/admin/cleanup-duplicates/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            }
+        })
+        .then(r => {
+            if (!r.ok) throw new Error('Server status ' + r.status);
+            return r.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Cleanup successful! Deleted ' + data.deleted_count + ' duplicate attempts.');
+                location.reload();
+            } else {
+                alert('Failed to clean up: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error performing cleanup.');
+        });
+    }
+
+    /* ─── Grading Modal Functions (copied from submissions page) ─── */
+    function openGradeModal(subId, name, currentMarks, currentFeedback, totalMarks) {
+        const modal = document.getElementById('gradeModal');
+        const form = document.getElementById('gradeForm');
+        
+        document.getElementById('modalStudentName').innerText = 'Grading: ' + name;
+        document.getElementById('modalMarks').value = (currentMarks === 'None' || currentMarks === '') ? 0 : currentMarks;
+        document.getElementById('modalFeedback').value = currentFeedback;
+        document.getElementById('maxMarks').innerText = totalMarks;
+        
+        form.action = `/submission/${subId}/grade/`;
+        form.dataset.subId = subId;
+        modal.style.display = 'flex';
+        
+        setTimeout(() => document.getElementById('modalMarks').focus(), 100);
+    }
+
+    function closeGradeModal() {
+        document.getElementById('gradeModal').style.display = 'none';
+    }
+
+    // Ajax Submission for grading
+    document.getElementById('gradeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = this;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const subId = form.dataset.subId;
+        const originalBtnText = submitBtn.innerText;
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        
+        const formData = new FormData(form);
+        formData.append('ajax', 'true');
+        
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                closeGradeModal();
+                
+                const toast = document.createElement('div');
+                toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#10b981; color:white; padding:12px 24px; border-radius:12px; font-weight:700; z-index:9999; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); animation: slideIn 0.3s ease;';
+                toast.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => toast.remove(), 500);
+                    window.location.reload(); 
+                }, 1500);
+            } else {
+                alert('Error: ' + (data.message || 'Could not save marks.'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Something went wrong.');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalBtnText;
+        }
+    });
+
+    function openConfirmResetModal(actionUrl) {
+        document.getElementById('confirmResetLink').href = actionUrl;
+        document.getElementById('confirmResetModal').style.display = 'flex';
+    }
+
+    function closeConfirmResetModal() {
+        document.getElementById('confirmResetModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const gradeModal = document.getElementById('gradeModal');
+        const confirmResetModal = document.getElementById('confirmResetModal');
+        if (event.target == gradeModal) closeGradeModal();
+        if (event.target == confirmResetModal) closeConfirmResetModal();
+    }
+
+    // Initialize Dashboard State
+    let isDashboardInitialized = false;
+    function initDashboard() {
+        if (isDashboardInitialized) return;
+        isDashboardInitialized = true;
+        console.log('Initializing Dashboard State...');
+        
+        // Setup custom dropdown listeners
+        setupCustomSelects();
+
+        // Initialize custom selects to match currentQuizId and currentAssignmentId
+        syncSelectedQuiz(currentQuizId);
+        syncSelectedAssignment(currentAssignmentId);
+
+        // Default active tab to first tab on page load
+        const defaultTabBtn = document.querySelector('.ad-tab-btn');
+        if (defaultTabBtn) {
+            admSwitch('quiz-overview', defaultTabBtn);
+        }
+
+        updateFilteredData();
+    }
+
+    // Event listener for deleting student attempts
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.delete-attempt-btn');
+        if (btn) {
+            e.preventDefault();
+            const attemptId = btn.getAttribute('data-attempt-id');
+            if (!attemptId) return;
+            
+            if (confirm('Are you sure you want to delete this student attempt? This action is permanent.')) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                
+                fetch(`/attempt/${attemptId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const row = btn.closest('.attempt-row');
+                        if (row) {
+                            row.style.transition = 'all 0.3s ease';
+                            row.style.opacity = '0';
+                            setTimeout(() => {
+                                row.remove();
+                                if (typeof updateFilteredData === 'function') {
+                                    updateFilteredData();
+                                }
+                            }, 300);
+                        }
+                        
+                        const card = btn.closest('.attempt-mobile-card');
+                        if (card) {
+                            card.style.transition = 'all 0.3s ease';
+                            card.style.opacity = '0';
+                            setTimeout(() => {
+                                card.remove();
+                                if (typeof updateFilteredData === 'function') {
+                                    updateFilteredData();
+                                }
+                            }, 300);
+                        }
+                        
+                        if (!row && !card) {
+                            window.location.reload();
+                        }
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to delete attempt.'));
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('An error occurred while deleting the attempt.');
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                });
+            }
+        }
+    });
+
+    window.addEventListener('DOMContentLoaded', initDashboard);
+    window.addEventListener('load', initDashboard);
+    if (document.readyState === 'complete') initDashboard();
+</script>
+{% endblock %}

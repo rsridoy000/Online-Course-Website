@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}{{ quiz.title }} - Liquid_Triple_R{% endblock %}
+
+{% block content %}
+{% block content %}
+<div class="admin-v2-container">
+    
+    <!-- Header V2 -->
+    <div class="admin-header-v2">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.5rem;">
+            <div>
+                <h1 class="gradient-text"><i class="fas fa-edit"></i> {{ quiz.title }}</h1>
+                <p>Curate and manage your assessment content for optimal student engagement.</p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="{% url 'add_question' quiz.id %}" class="tab-btn-v2" style="text-decoration: none; border-color: var(--admin-primary); color: var(--admin-primary);">
+                    <i class="fas fa-plus"></i> Add Question
+                </a>
+                <a href="{% url 'edit_quiz' quiz.id %}" class="tab-btn-v2" style="text-decoration: none; border-color: var(--admin-secondary); color: var(--admin-secondary);">
+                    <i class="fas fa-cog"></i> Configure
+                </a>
+                <a href="{% url 'delete_quiz' quiz.id %}" class="tab-btn-v2 confirm-link" data-title="Erase Entire Quiz?" data-message="This will permanently delete '{{ quiz.title }}' including all questions and history." style="text-decoration: none; border-color: var(--admin-danger); color: var(--admin-danger);">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats V2 -->
+    <div class="v2-stat-grid" style="margin-bottom: 3rem;">
+        <div class="v2-glass-card" style="padding: 1.5rem; text-align: center;">
+            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.5rem;">Time Limit</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--admin-primary);">{{ quiz.time_limit }} Min</div>
+        </div>
+        <div class="v2-glass-card" style="padding: 1.5rem; text-align: center;">
+            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.5rem;">Questions</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--admin-secondary);">{{ questions.count }} Items</div>
+        </div>
+        <div class="v2-glass-card" style="padding: 1.5rem; text-align: center;">
+            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.5rem;">Total Attempts</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #10b981;">{{ attempts.count }} Count</div>
+        </div>
+    </div>
+
+    <!-- Questions Section V2 -->
+    <div style="margin-bottom: 4rem;">
+        <h2 style="font-weight: 800; color: var(--text-primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-list-check" style="color: var(--admin-primary);"></i> Assessment Core
+        </h2>
+        
+        {% if questions %}
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for question in questions %}
+                <div class="card-v2" style="padding: 2rem; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                        <div style="display: flex; gap: 1rem;">
+                            <div class="v2-badge" style="width: 32px; height: 32px; padding: 0; justify-content: center; background: var(--admin-primary); color: white; font-weight: 800;">
+                                {{ forloop.counter }}
+                            </div>
+                            <h3 style="font-weight: 800; color: var(--text-primary); margin: 0; font-size: 1.15rem; line-height: 1.4;">{{ question.text }}</h3>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{% url 'edit_question' question.id %}" class="tab-btn-v2" style="padding: 0.5rem 0.75rem; font-size: 0.75rem; text-decoration: none; border-color: #e2e8f0;"><i class="fas fa-pen"></i></a>
+                            <a href="{% url 'delete_question' question.id %}" class="tab-btn-v2 confirm-link" data-title="Remove Question?" data-message="Delete this question from the quiz?" style="padding: 0.5rem 0.75rem; font-size: 0.75rem; text-decoration: none; border-color: #fecaca; color: var(--admin-danger);"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        {% for option in question.options.all %}
+                        <div style="padding: 1rem; border-radius: 1rem; border: 1px solid {% if option.is_correct %}rgba(16, 185, 129, 0.3){% else %}#f1f5f9{% endif %}; background: {% if option.is_correct %}rgba(16, 185, 129, 0.05){% else %}#f8fafc{% endif %}; display: flex; align-items: flex-start; gap: 10px;">
+                            <div style="color: {% if option.is_correct %}#10b981{% else %}var(--text-secondary){% endif %}; margin-top: 3px;">
+                                {% if option.is_correct %}<i class="fas fa-check-circle"></i>{% else %}<i class="far fa-circle"></i>{% endif %}
+                            </div>
+                            <div style="font-size: 0.9rem; font-weight: 600; color: {% if option.is_correct %}#065f46{% else %}var(--text-secondary){% endif %};">{{ option.text }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card-v2" style="padding: 4rem 2rem; text-align: center;">
+                <div style="font-size: 3rem; opacity: 0.1; margin-bottom: 1rem;"><i class="fas fa-question"></i></div>
+                <h3 style="font-weight: 800; color: var(--text-primary);">No questions yet</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">Build your assessment by adding your first question.</p>
+                <a href="{% url 'add_question' quiz.id %}" class="tab-btn-v2 active" style="text-decoration: none; padding: 0.75rem 2rem;">Add Question Instance</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Student Performance Section V2 -->
+    <div>
+        <h2 style="font-weight: 800; color: var(--text-primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-users" style="color: var(--admin-secondary);"></i> Recent Attempts
+        </h2>
+        
+        <div class="card-v2" style="padding: 0; overflow: hidden;">
+            <div class="table-responsive-v2">
+                <table class="admin-table-v2">
+                    <thead>
+                        <tr>
+                            <th>Student Information</th>
+                            <th style="width: 150px; text-align: center;">Raw Score</th>
+                            <th style="width: 150px; text-align: center;">Efficiency</th>
+                            <th style="width: 200px;">Hand-in Time</th>
+                            <th style="width: 120px; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attempt in attempts %}
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: var(--admin-primary); font-size: 0.8rem;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div style="font-weight: 800; color: var(--text-primary); font-size: 0.9rem;">{{ attempt.student_name }}</div>
+                                </div>
+                            </td>
+                            <td style="text-align: center; font-family: monospace; font-weight: 800; color: var(--text-primary);">
+                                {{ attempt.score }} / {{ attempt.total_questions }}
+                            </td>
+                            <td style="text-align: center;">
+                                <div class="v2-badge" style="background: rgba(79, 70, 229, 0.1); color: var(--admin-primary); font-weight: 800;">
+                                    {% if attempt.total_questions > 0 %}
+                                       {% widthratio attempt.score attempt.total_questions 100 %}%
+                                    {% else %}0%{% endif %}
+                                </div>
+                            </td>
+                            <td style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">
+                                {{ attempt.submitted_at|date:"d M Y, H:i" }}
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="{% url 'view_attempt' attempt.id %}" class="tab-btn-v2" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; text-decoration: none; border-color: var(--admin-primary); color: var(--admin-primary);">Analyze</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="padding: 3rem; text-align: center; color: var(--text-secondary); font-weight: 600; font-style: italic;">No attempt signals recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}v>
+</div>
+{% endblock %}

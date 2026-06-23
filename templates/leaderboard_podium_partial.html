@@ -1,0 +1,102 @@
+{% if top_three %}
+    <!-- ── FEATURED PODIUM (Top 3) ── -->
+    <div class="podium-container" style="display:flex;justify-content:center;align-items:flex-end;gap:1rem;margin-bottom:4rem;padding-top:2rem;flex-wrap:nowrap;">
+
+        <!-- 2nd Place -->
+        {% if top_three|length >= 2 %}
+        {% with second=top_three.1 %}
+        <div class="podium-card-2" style="text-align:center;width:160px;animation:fadeInUp 0.6s ease-out 0.1s both;">
+            <div style="position:relative;display:inline-block;margin-bottom:1rem;">
+                <div class="podium-avatar-small" style="width:80px;height:80px;border-radius:50%;padding:3px;background:white;
+                            box-shadow:0 8px 20px rgba(16,185,129,0.15);border:2px solid #10b981;">
+                    {% if second.profile.profile_image %}
+                        <img src="{{ second.profile.profile_image.url }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                    {% else %}
+                        <div style="width:100%;height:100%;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.5rem;color:#10b981;">
+                            {{ second.student.first_name|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
+                            background:#10b981;color:white;width:24px;height:24px;border-radius:50%;
+                            font-size:0.75rem;font-weight:900;display:flex;align-items:center;justify-content:center;
+                            border:2px solid white;box-shadow:0 4px 8px rgba(0,0,0,0.1);">2</div>
+            </div>
+            <div style="font-weight:800;color:#1e293b;font-size:0.9rem;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                {{ second.student.get_full_name|default:second.student.username }}
+            </div>
+            <div class="podium-score-small" style="background:linear-gradient(135deg,#10b981,#059669);border-radius:1.2rem;
+                        padding:1rem 0.5rem;color:white;box-shadow:0 8px 25px rgba(16,185,129,0.2);">
+                <div class="podium-score-val" style="font-size:1.45rem;font-weight:900;line-height:1;">{{ second.total_score }}</div>
+                <div style="font-size:0.6rem;font-weight:800;text-transform:uppercase;opacity:0.8;margin-top:2px;">Points</div>
+            </div>
+        </div>
+        {% endwith %}
+        {% endif %}
+
+        <!-- 1st Place (Winner) -->
+        {% if top_three|length >= 1 %}
+        {% with first=top_three.0 %}
+        <div class="podium-card-1" style="text-align:center;width:200px;z-index:2;animation:fadeInUp 0.6s ease-out both;">
+            <div style="margin-bottom:0.5rem;font-size:1.8rem;filter:drop-shadow(0 4px 8px rgba(245,158,11,0.3));">👑</div>
+            <div style="position:relative;display:inline-block;margin-bottom:1.25rem;">
+                <div class="podium-avatar-large" style="width:110px;height:110px;border-radius:50%;padding:4px;background:white;
+                            box-shadow:0 0 30px rgba(6,182,212,0.25);border:3px solid #06b6d4;">
+                    {% if first.profile.profile_image %}
+                        <img src="{{ first.profile.profile_image.url }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                    {% else %}
+                        <div style="width:100%;height:100%;border-radius:50%;background:#06b6d4;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:2rem;color:white;">
+                            {{ first.student.first_name|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
+                            background:#0891b2;color:white;width:28px;height:28px;border-radius:50%;
+                            font-size:0.85rem;font-weight:900;display:flex;align-items:center;justify-content:center;
+                            border:2px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.15);">1</div>
+            </div>
+            <div style="font-weight:900;color:#1e293b;font-size:1rem;margin-bottom:6px;">
+                {{ first.student.get_full_name|default:first.student.username }}
+            </div>
+            <div class="podium-score-large" style="background:linear-gradient(135deg,#06b6d4,#0891b2);border-radius:1.5rem;
+                        padding:1.4rem 0.6rem;color:white;box-shadow:0 12px 35px rgba(6,182,212,0.35);">
+                <div class="podium-score-val-large" style="font-size:2rem;font-weight:900;line-height:1;">{{ first.total_score }}</div>
+                <div style="font-size:0.7rem;font-weight:800;text-transform:uppercase;opacity:0.9;margin-top:2px;letter-spacing:0.5px;">Grand Points</div>
+            </div>
+        </div>
+        {% endwith %}
+        {% endif %}
+
+        <!-- 3rd Place -->
+        {% if top_three|length >= 3 %}
+        {% with third=top_three.2 %}
+        <div class="podium-card-3" style="text-align:center;width:160px;animation:fadeInUp 0.6s ease-out 0.2s both;">
+            <div style="position:relative;display:inline-block;margin-bottom:1rem;">
+                <div class="podium-avatar-small" style="width:80px;height:80px;border-radius:50%;padding:3px;background:white;
+                            box-shadow:0 8px 20px rgba(99,102,241,0.15);border:2px solid #6366f1;">
+                    {% if third.profile.profile_image %}
+                        <img src="{{ third.profile.profile_image.url }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                    {% else %}
+                        <div style="width:100%;height:100%;border-radius:50%;background:#e0e7ff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.5rem;color:#6366f1;">
+                            {{ third.student.first_name|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
+                            background:#6366f1;color:white;width:24px;height:24px;border-radius:50%;
+                            font-size:0.75rem;font-weight:900;display:flex;align-items:center;justify-content:center;
+                            border:2px solid white;box-shadow:0 4px 8px rgba(0,0,0,0.1);">3</div>
+            </div>
+            <div style="font-weight:800;color:#1e293b;font-size:0.9rem;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                {{ third.student.get_full_name|default:third.student.username }}
+            </div>
+            <div class="podium-score-small" style="background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:1.2rem;
+                        padding:1rem 0.5rem;color:white;box-shadow:0 8px 25px rgba(79,70,229,0.2);">
+                <div class="podium-score-val" style="font-size:1.45rem;font-weight:900;line-height:1;">{{ third.total_score }}</div>
+                <div style="font-size:0.6rem;font-weight:800;text-transform:uppercase;opacity:0.8;margin-top:2px;">Points</div>
+            </div>
+        </div>
+        {% endwith %}
+        {% endif %}
+    </div>
+{% endif %}

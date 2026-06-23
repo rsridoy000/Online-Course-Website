@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Notice Board | Liquid_Triple_R{% endblock %}
+
+{% block content %}
+<div class="admin-v2-container" style="max-width: 900px; margin: 0 auto;">
+    
+    <!-- Header V2 -->
+    <div class="admin-header-v2">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1><i class="fas fa-bullhorn" style="color: var(--admin-primary); margin-right: 0.5rem;"></i> Notice Board</h1>
+                <p>Stay updated with the latest academic announcements and schedule changes.</p>
+            </div>
+            {% if user.is_staff %}
+            <a href="/admin/notice/add/" class="tab-btn-v2 active" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-plus"></i> Add Notice
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="notice-feed-v2">
+        {% for notice in notices %}
+        <div class="card-v2 slide-up" style="margin-bottom: 2rem; padding: 0; overflow: hidden; animation-delay: {{ forloop.counter0|add:0.1 }}s;">
+            <div style="display: flex; min-height: 120px;">
+                <!-- Decorative Side Indicator -->
+                <div style="width: 6px; background: linear-gradient(to bottom, var(--admin-primary), var(--admin-secondary)); flex-shrink: 0;"></div>
+                
+                <div style="padding: 2rem; flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+                        <h2 style="font-weight: 800; color: var(--text-primary); font-size: 1.35rem; margin: 0;">{{ notice.title }}</h2>
+                        <div class="v2-badge badge-info-v2" style="background: rgba(79, 70, 229, 0.1); color: var(--admin-primary);">
+                            <i class="far fa-calendar-alt"></i> {{ notice.created_at|date:"F d, Y" }}
+                        </div>
+                    </div>
+                    
+                    <div class="notice-content" style="line-height: 1.8; color: var(--text-secondary); font-size: 1.05rem;">
+                        {{ notice.content|linebreaks }}
+                    </div>
+                    
+                    <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: 0.85rem; font-weight: 700;">
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--admin-primary-light); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem;">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            Posted by Academic Administration
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="tab-btn-v2" style="font-size: 0.75rem; padding: 0.4rem 0.8rem;" onclick="copyNoticeLink('{{ notice.id }}')">
+                                <i class="far fa-share-square"></i> Share
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card-v2 slide-up" style="padding: 5rem 2rem; text-align: center;">
+            <div style="font-size: 4rem; opacity: 0.1; margin-bottom: 1.5rem;"><i class="fas fa-bell-slash"></i></div>
+            <h3 style="font-weight: 800; color: var(--text-primary);">No active notices</h3>
+            <p style="color: var(--text-secondary);">Everything seems quiet for now. Check back later for updates.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function copyNoticeLink(id) {
+        // Mock link copy function
+        alert('Notice link copied to clipboard!');
+    }
+</script>
+{% endblock %}

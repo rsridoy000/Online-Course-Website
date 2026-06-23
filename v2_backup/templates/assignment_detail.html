@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ assignment.title }} | Liquid_Triple_R{% endblock %}
+
+{% block content %}
+<div class="result-container">
+    <div class="score-display">
+        <div class="score-card">
+            <h2>{{ assignment.title }}</h2>
+            <p class="quiz-title">Due Date: {{ assignment.deadline|date:"F d, Y H:i" }}</p>
+        </div>
+
+        <div class="score-stats">
+            <div class="stat">
+                <strong>{{ assignment.total_marks }}</strong>
+                <span>Total Marks</span>
+            </div>
+            <div class="stat">
+                <strong>{{ assignment.submissions.count }}</strong>
+                <span>Submissions</span>
+            </div>
+            <div class="stat">
+                <strong>
+                    {% if submission %}
+                        {% if submission.is_graded %}{{ submission.marks }}{% else %}Wait{% endif %}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </strong>
+                <span>Your Mark</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="questions-container mb-4">
+        <h3><i class="fas fa-info-circle text-blue-500"></i> Requirements</h3>
+        <div class="mt-3" style="line-height: 1.8; color: #475569;">
+            {{ assignment.description|linebreaks }}
+        </div>
+        
+        {% if assignment.requirements_file %}
+        <div class="mt-4 p-3 bg-gray-50 rounded border flex items-center justify-between">
+            <div class="flex items-center">
+                <i class="fas fa-file-pdf text-red-500 text-2xl mr-3"></i>
+                <span>Download Requirements Document</span>
+            </div>
+            <a href="{{ assignment.requirements_file.url }}" class="btn btn-sm btn-info" download>Download</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="form-container" style="max-width: 100%;">
+        <h3><i class="fas fa-upload text-blue-500"></i> {% if submission %}Update Submission{% else %}Submit Assignment{% endif %}</h3>
+        
+        {% if submission %}
+        <div class="alert alert-success mt-2">
+            <strong>Submited on:</strong> {{ submission.submitted_at|date:"M d, Y H:i" }}
+        </div>
+        {% endif %}
+
+        <form action="{% url 'submit_assignment' assignment.id %}" method="POST" enctype="multipart/form-data" class="mt-4">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Upload Assignment (ZIP File Only)</label>
+                <div style="border: 2px dashed #cbd5e1; padding: 2rem; text-align: center; border-radius: 1rem; background: #f8fafc;">
+                    <i class="fas fa-file-archive text-4xl text-gray-400 mb-3"></i>
+                    <p class="mb-3">Drag and drop your ZIP file here or click to browse</p>
+                    <input type="file" name="zip_file" accept=".zip" required>
+                </div>
+                <p class="text-muted mt-2" style="font-size: 0.85rem;">Max file size: 50MB. Please ensure all code files are included in the ZIP.</p>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-large">
+                <i class="fas fa-cloud-upload-alt mr-2"></i> Submit Assignment
+            </button>
+        </form>
+    </div>
+
+    {% if submission and submission.feedback %}
+    <div class="performance-message mt-4">
+        <h3><i class="fas fa-comment-dots"></i> Teacher's Feedback</h3>
+        <p class="mt-2">{{ submission.feedback }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

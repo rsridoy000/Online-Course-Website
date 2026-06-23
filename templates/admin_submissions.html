@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Assignment Submissions | Liquid_Triple_R Admin{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem;">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+        <div>
+            <h1 style="color: #1e293b; font-size: 2rem; font-weight: 800; margin: 0; letter-spacing: -0.025em;">Student Submissions</h1>
+            <p style="color: #64748b; margin-top: 0.25rem;">Review and grade assignments submitted by students.</p>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            {% if has_graded_unpublished %}
+            <a href="{% url 'publish_all_submissions' %}{% if assignment_id %}?assignment={{ assignment_id }}{% endif %}" 
+               style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; background: #10b981; border-radius: 12px; color: white; text-decoration: none; font-weight: 700; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);"
+               onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                <i class="fas fa-paper-plane"></i> Publish All
+            </a>
+            {% elif has_published %}
+            <a href="{% url 'unpublish_all_submissions' %}{% if assignment_id %}?assignment={{ assignment_id }}{% endif %}" 
+               style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; background: #ef4444; border-radius: 12px; color: white; text-decoration: none; font-weight: 700; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);"
+               onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                <i class="fas fa-eye-slash"></i> Unpublish All
+            </a>
+            {% endif %}
+
+            <a href="{% url 'assignment_list' %}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; color: #475569; text-decoration: none; font-weight: 700; transition: all 0.2s;">
+                <i class="fas fa-arrow-left"></i> Back to Assignments
+            </a>
+        </div>
+    </div>
+
+    <!-- Table Container -->
+    <div style="background: white; border-radius: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; overflow: hidden;">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="background: #f8fafc; border-bottom: 1.5px solid #f1f5f9;">
+                        <th style="padding: 1.25rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Student Info</th>
+                        <th style="padding: 1.25rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Assignment</th>
+                        <th style="padding: 1.25rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Submission Date</th>
+                        <th style="padding: 1.25rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Status & Marks</th>
+                        <th style="padding: 1.25rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody style="font-size: 0.95rem;">
+                    {% for sub in submissions %}
+                    <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                        <td style="padding: 1.25rem 1.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div style="width: 36px; height: 36px; background: #e0e7ff; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #6366f1; font-weight: 800; font-size: 0.8rem;">
+                                    {{ sub.student.first_name|slice:":1" }}{{ sub.student.last_name|slice:":1" }}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; color: #1e293b;">{{ sub.student.get_full_name }}</div>
+                                    {% if not sub.student.is_staff and sub.student.student_profile %}
+                                    <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">ID: {{ sub.student.student_profile.student_id }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 1.25rem 1.5rem;">
+                            <div style="font-weight: 600; color: #475569;">{{ sub.assignment.title }}</div>
+                        </td>
+                        <td style="padding: 1.25rem 1.5rem; color: #64748b; font-size: 0.85rem; font-weight: 500;">
+                            {{ sub.submitted_at|date:"d/m/Y" }}<br>
+                            <span style="font-size: 0.75rem; color: #94a3b8;">at {{ sub.submitted_at|date:"h:i A" }}</span>
+                        </td>
+                        <td style="padding: 1.25rem 1.5rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                {% if sub.is_published %}
+                                    <span style="display: inline-block; width: fit-content; padding: 2px 10px; border-radius: 99px; background: #dcfce7; color: #166534; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">Published</span>
+                                    <div style="font-weight: 800; color: #1e293b; font-size: 1rem;">{{ sub.marks }} / {{ sub.assignment.total_marks }}</div>
+                                {% elif sub.is_graded %}
+                                    <span style="display: inline-block; width: fit-content; padding: 2px 10px; border-radius: 99px; background: #e0e7ff; color: #4338ca; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">Graded (Private)</span>
+                                    <div style="font-weight: 800; color: #1e293b; font-size: 1rem;">{{ sub.marks }} / {{ sub.assignment.total_marks }}</div>
+                                {% else %}
+                                    <span style="display: inline-block; width: fit-content; padding: 2px 10px; border-radius: 99px; background: #fef3c7; color: #92400e; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">Pending</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td style="padding: 1.25rem 1.5rem; text-align: right;">
+                            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                {% if sub.file %}
+                                <a href="{{ sub.file.url }}" class="admin-action-btn" download style="display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; background: #f1f5f9; color: #475569; text-decoration: none; transition: all 0.2s;" title="Download File">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                {% endif %}
+                                {% if sub.drive_link %}
+                                <a href="{{ sub.drive_link }}" target="_blank" class="admin-action-btn" style="display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; text-decoration: none; transition: all 0.2s;" title="View Drive Link">
+                                    <i class="fab fa-google-drive"></i>
+                                </a>
+                                {% endif %}
+                                <button onclick="openGradeModal({{ sub.id }}, '{{ sub.student.get_full_name }}', '{{ sub.marks }}', '{{ sub.feedback|escapejs }}', '{{ sub.assignment.total_marks }}')" 
+                                        style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 10px; background: #6366f1; color: white; border: none; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 0.85rem;" title="Edit Grade">
+                                    <i class="fas fa-edit"></i> Grade
+                                </button>
+                                {% if sub.is_graded and not sub.is_published %}
+                                <a href="{% url 'publish_result' sub.id %}" 
+                                   style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 10px; background: #10b981; color: white; text-decoration: none; font-weight: 700; transition: all 0.2s; font-size: 0.85rem;"
+                                   onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                                    <i class="fas fa-paper-plane"></i> Publish
+                                </a>
+                                {% endif %}
+                                {% if sub.is_graded %}
+                                <button onclick="openConfirmResetModal('{% url 'cancel_grade' sub.id %}{% if assignment_id %}?assignment={{ assignment_id }}{% endif %}')"
+                                        style="display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; background: #fef2f2; color: #ef4444; border: 1.5px solid #fee2e2; transition: all 0.2s; cursor: pointer;" 
+                                        title="Reset to Pending"
+                                        onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 5rem 2rem; text-align: center;">
+                            <div style="width: 64px; height: 64px; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 1.5rem; color: #cbd5e1;">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                            <h3 style="font-weight: 800; color: #1e293b; margin: 0;">No submissions yet</h3>
+                            <p style="color: #64748b; margin-top: 0.25rem;">Waiting for students to upload their work.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modern Grading Modal -->
+<div id="gradeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter: blur(8px); z-index:2000; align-items:center; justify-content:center; animation: fadeInModal 0.3s ease;">
+    <div style="width:90%; max-width:500px; background:white; border-radius:1.5rem; padding:2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: linear-gradient(to right, #6366f1, #a855f7);"></div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+            <div>
+                <h3 id="modalStudentName" style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 0;">Grading Submission</h3>
+                <p style="color: #64748b; margin-top: 0.25rem; font-size: 0.9rem;">Assign marks and provide feedback.</p>
+            </div>
+            <button onclick="closeGradeModal()" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 8px; color: #64748b; cursor: pointer; transition: all 0.2s;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="gradeForm" method="POST">
+            {% csrf_token %}
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem;">Obtained Marks (out of <span id="maxMarks">100</span>)</label>
+                <input type="number" name="marks" id="modalMarks" min="0" required
+                       style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 1rem; transition: all 0.2s; outline: none; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 2rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem;">Instructor's Feedback</label>
+                <textarea name="feedback" id="modalFeedback" rows="4" placeholder="Well done! Excellent work on the..." 
+                          style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 1rem; transition: all 0.2s; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button type="button" class="btn-cancel" onclick="closeGradeModal()" style="flex: 1; padding: 0.9rem; border-radius: 12px; background: #f8fafc; border: 1.5px solid #e2e8f0; color: #475569; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                    Cancel
+                </button>
+                <button type="submit" style="flex: 2; padding: 0.9rem; border-radius: 12px; background: #6366f1; border: none; color: white; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Custom Confirm Reset Modal -->
+<div id="confirmResetModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter: blur(8px); z-index:2000; align-items:center; justify-content:center; animation: fadeInModal 0.3s ease;">
+    <div style="width:90%; max-width:400px; background:white; border-radius:1.5rem; padding:2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); position: relative; overflow: hidden; text-align: center;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: #ef4444;"></div>
+        
+        <div style="width: 64px; height: 64px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0.5rem auto 1.5rem; font-size: 1.8rem; color: #ef4444;">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 0 0 0.5rem; font-family: inherit;">Reset Grade?</h3>
+        <p style="color: #64748b; font-size: 0.95rem; margin: 0 0 2rem; line-height: 1.5; font-family: inherit;">This will clear this student's marks and feedback, setting their status back to Pending. Are you sure?</p>
+        
+        <div style="display: flex; gap: 1rem;">
+            <button type="button" class="btn-cancel" onclick="closeConfirmResetModal()" style="flex: 1; padding: 0.9rem; border-radius: 12px; background: #f8fafc; border: 1.5px solid #e2e8f0; color: #475569; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                Cancel
+            </button>
+            <a id="confirmResetLink" href="#" style="flex: 1.2; padding: 0.9rem; border-radius: 12px; background: #ef4444; border: none; color: white; font-weight: 700; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);">
+                Yes, Reset
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes fadeInModal {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .admin-action-btn:hover {
+        background: #e2e8f0 !important;
+        color: #1e293b !important;
+        transform: scale(1.05);
+    }
+    button:hover {
+        opacity: 0.9;
+    }
+    .btn-cancel:hover {
+        background: #f1f5f9 !important;
+        color: #1e293b !important;
+    }
+</style>
+
+<script>
+    function openGradeModal(subId, name, currentMarks, currentFeedback, totalMarks) {
+        const modal = document.getElementById('gradeModal');
+        const form = document.getElementById('gradeForm');
+        
+        document.getElementById('modalStudentName').innerText = 'Grading: ' + name;
+        document.getElementById('modalMarks').value = (currentMarks === 'None' || currentMarks === '') ? 0 : currentMarks;
+        document.getElementById('modalFeedback').value = currentFeedback;
+        document.getElementById('maxMarks').innerText = totalMarks;
+        
+        form.action = `/submission/${subId}/grade/`;
+        form.dataset.subId = subId; // Store subId for table update
+        modal.style.display = 'flex';
+        
+        setTimeout(() => document.getElementById('modalMarks').focus(), 100);
+    }
+
+    function closeGradeModal() {
+        document.getElementById('gradeModal').style.display = 'none';
+    }
+
+    // Handle AJAX Submission
+    document.getElementById('gradeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = this;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const subId = form.dataset.subId;
+        const originalBtnText = submitBtn.innerText;
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        
+        const formData = new FormData(form);
+        formData.append('ajax', 'true');
+        
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update marks in the table instantly (optional but recommended)
+                // location.reload(); // If you want to refresh anyway, but we want to avoid it.
+                // For now, a quick alert and close is best.
+                closeGradeModal();
+                
+                // Show a modern success toast/alert
+                const toast = document.createElement('div');
+                toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#10b981; color:white; padding:12px 24px; border-radius:12px; font-weight:700; z-index:9999; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); animation: slideIn 0.3s ease;';
+                toast.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => toast.remove(), 500);
+                    // Refresh after 1 second to show new labels, or just let user manually refresh later
+                    window.location.reload(); 
+                }, 1500);
+                
+            } else {
+                alert('Error: ' + (data.message || 'Could not save marks.'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Something went wrong. Please try again.');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalBtnText;
+        }
+    });
+
+    function openConfirmResetModal(actionUrl) {
+        document.getElementById('confirmResetLink').href = actionUrl;
+        document.getElementById('confirmResetModal').style.display = 'flex';
+    }
+
+    function closeConfirmResetModal() {
+        document.getElementById('confirmResetModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const gradeModal = document.getElementById('gradeModal');
+        const confirmResetModal = document.getElementById('confirmResetModal');
+        if (event.target == gradeModal) closeGradeModal();
+        if (event.target == confirmResetModal) closeConfirmResetModal();
+    }
+</script>
+{% endblock %}

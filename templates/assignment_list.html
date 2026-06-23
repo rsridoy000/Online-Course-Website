@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Assignments | Liquid_Triple_R{% endblock %}
+
+{% block content %}
+<style>
+    .assignments-container {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    .assignment-hero {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        padding: 3rem 2rem;
+        border-radius: 1.5rem;
+        color: white;
+        margin-bottom: 2.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .assignment-hero::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 50%;
+    }
+
+    .status-summary {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .summary-badge {
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(4px);
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .assignment-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 2rem;
+    }
+
+    .assignment-card {
+        background: white;
+        border-radius: 1.25rem;
+        padding: 1.75rem;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .assignment-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        border-color: #e2e8f0;
+    }
+
+    .card-status-badge {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-submitted { background: #dcfce7; color: #166534; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-graded { background: #e0e7ff; color: #4338ca; }
+    .status-expired { background: #fee2e2; color: #b91c1c; }
+
+    .assignment-icon {
+        width: 48px;
+        height: 48px;
+        background: #f8fafc;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: #6366f1;
+        margin-bottom: 1.25rem;
+    }
+
+    .assignment-title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+    }
+
+    .assignment-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: auto;
+        padding-top: 1.5rem;
+        border-top: 1px dashed #f1f5f9;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .detail-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #94a3b8;
+        font-weight: 700;
+    }
+
+    .detail-value {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #334155;
+    }
+
+    .btn-assignment {
+        width: 100%;
+        padding: 0.85rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s;
+        margin-top: 1.25rem;
+    }
+
+    .btn-pending { background: #6366f1; color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
+    .btn-pending:hover { background: #4f46e5; transform: scale(1.02); }
+    
+    .btn-view { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+    .btn-view:hover { background: #f1f5f9; color: #1e293b; }
+
+    .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        background: white;
+        border-radius: 1.5rem;
+        border: 2px dashed #e2e8f0;
+        grid-column: 1 / -1;
+    }
+
+    @media (max-width: 768px) {
+        .assignment-hero { padding: 1.5rem 1rem; text-align: center; margin-bottom: 2rem; }
+        .assignment-hero h1 { font-size: 1.6rem !important; }
+        .assignment-hero p { font-size: 0.9rem !important; }
+        .status-summary { justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+        .assignment-grid { grid-template-columns: 1fr; }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="assignments-container">
+
+    <!-- Hero Section -->
+    <div class="assignment-hero">
+        <h1 style="font-size: 2.25rem; font-weight: 800; margin: 0 0 0.5rem 0;">Academic Assignments</h1>
+        <p style="color: #cbd5e1; font-size: 1.05rem; max-width: 600px;">Review your upcoming tasks, track deadlines, and submit your work to boost your academic performance.</p>
+        
+        <div class="status-summary">
+            <div class="summary-badge"><i class="fas fa-list-ul"></i> {{ assignments|length }} Total</div>
+            <div class="summary-badge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.2);">
+                <i class="fas fa-check-circle" style="color: #10b981;"></i> 
+                {{ submitted_count }} {% if user.is_staff %}Recent Submissions{% else %}Submitted{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Grid -->
+    <div class="assignment-grid">
+        {% for item in assignments %}
+        <div class="assignment-card">
+            <!-- Status Badge -->
+            <div class="card-status-badge {% if item.assignment.is_deadline_passed %}status-expired{% elif item.submission and item.submission.is_published %}status-graded{% elif item.is_submitted %}status-submitted{% else %}status-pending{% endif %}">
+                {% if item.assignment.is_deadline_passed %}Expired{% elif item.submission and item.submission.is_published %}Graded{% elif item.is_submitted %}Submitted{% else %}Pending{% endif %}
+            </div>
+
+            <!-- Icon -->
+            <div class="assignment-icon">
+                <i class="fas fa-file-code"></i>
+            </div>
+
+            <!-- Title & Description -->
+            <div class="assignment-title" style="word-break: break-word; overflow-wrap: break-word;">{{ item.assignment.title }}</div>
+            <div style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin-bottom: 1.25rem; word-break: break-word; overflow-wrap: break-word;">
+                {{ item.assignment.description|truncatechars:100 }}
+                {% if item.assignment.description|length > 100 %}
+                <a href="{% url 'assignment_detail' item.assignment.id %}" style="color: #6366f1; text-decoration: none; font-weight: 700; font-size: 0.8rem; margin-left: 2px;">See More...</a>
+                {% endif %}
+            </div>
+
+            <!-- Details -->
+            <div class="assignment-details" style="margin-top: auto; padding-top: 1.25rem; border-top: 1px dashed #f1f5f9;">
+                <div class="detail-item">
+                    <span class="detail-label">Points</span>
+                    <span class="detail-value"><i class="fas fa-star" style="color: #f59e0b; font-size: 0.75rem;"></i> {{ item.assignment.total_marks }} Marks</span>
+                </div>
+                <div class="detail-item" style="text-align: right;">
+                    <span class="detail-label">Deadline</span>
+                    <span class="detail-value" style="{% if item.assignment.is_deadline_passed %}color: #ef4444;{% endif %}">
+                        <i class="fas fa-calendar-alt" style="font-size: 0.75rem;"></i> 
+                        {% if item.assignment.is_deadline_passed %}Expired{% else %}{{ item.assignment.deadline|date:"d/m/Y" }}{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            {% if item.submission and item.submission.is_graded %}
+                {% if item.submission.is_published %}
+                <div style="margin-top: 1.25rem; padding: 0.75rem; background: #f0fdf4; border-radius: 0.75rem; text-align: center; border: 1px solid #dcfce7;">
+                    <div style="font-size: 0.65rem; text-transform: uppercase; color: #15803d; font-weight: 800; letter-spacing: 0.5px;">Your Score</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: #166534;">{{ item.submission.marks }} / {{ item.assignment.total_marks }}</div>
+                </div>
+                {% else %}
+                <div style="margin-top: 1.25rem; padding: 0.75rem; background: #f8fafc; border-radius: 0.75rem; text-align: center; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 0.65rem; text-transform: uppercase; color: #64748b; font-weight: 800; letter-spacing: 0.5px;">Graded</div>
+                    <div style="font-size: 0.85rem; font-weight: 600; color: #475569; margin-top: 0.2rem;">Results are being reviewed</div>
+                </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Action Button -->
+            <div style="margin-top: 1.5rem; width: 100%;">
+                {% if user.is_staff %}
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; width: 100%;">
+                    <a href="{% url 'admin_submissions' %}?assignment={{ item.assignment.id }}" class="btn-assignment" style="margin: 0; width: 100%; box-sizing: border-box; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 0.75rem; padding: 0.8rem;">
+                        <i class="fas fa-users"></i> View Submissions
+                    </a>
+                    <div style="display: flex; gap: 0.75rem; width: 100%;">
+                        <a href="{% url 'edit_assignment' item.assignment.id %}" class="btn-assignment" style="margin: 0; flex: 1; box-sizing: border-box; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 0.75rem; padding: 0.8rem;">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <button onclick="confirmDeleteSubmission({{ item.assignment.id }}, '{{ item.assignment.title|escapejs }}')" class="btn-assignment" style="margin: 0; flex: 1; box-sizing: border-box; background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 0.75rem; padding: 0.8rem;">
+                            <i class="fas fa-trash-alt"></i> Delete
+                        </button>
+                    </div>
+                </div>
+                {% else %}
+                    {% if item.is_submitted %}
+                    <a href="{% url 'assignment_detail' item.assignment.id %}" class="btn-assignment btn-view" style="display: flex; align-items: center; justify-content: center; width: 100%; box-sizing: border-box; padding: 0.85rem; border-radius: 0.8rem;">
+                        View Submission
+                    </a>
+                    {% elif item.assignment.is_deadline_passed %}
+                    <div style="display: flex; align-items: center; justify-content: center; width: 100%; box-sizing: border-box; padding: 0.92rem; border-radius: 0.8rem; background: #f8fafc; color: #94a3b8; font-weight: 700; font-size: 0.85rem; cursor: not-allowed; border: 1.5px solid #f1f5f9; gap: 8px;">
+                        <i class="fas fa-calendar-times"></i> Expired
+                    </div>
+                    {% else %}
+                    <a href="{% url 'assignment_detail' item.assignment.id %}" class="btn-assignment btn-pending" style="display: flex; align-items: center; justify-content: center; width: 100%; box-sizing: border-box; padding: 0.85rem; border-radius: 0.8rem;">
+                        Start Assignment
+                    </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div style="width: 80px; height: 80px; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2.5rem; color: #cbd5e1;">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h3 style="font-weight: 800; color: #1e293b; margin-bottom: 0.5rem;">No assignments found</h3>
+            <p style="color: #64748b;">{% if user.is_staff %}You haven't posted any assignments yet.{% else %}Your teacher hasn't posted any assignments for you yet.{% endif %} Check back later!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    async function confirmDeleteSubmission(id, title) {
+        const confirmed = await window.customConfirm(
+            'Delete Assignment',
+            `Are you sure you want to delete "${title}"? This will also remove all student submissions for this assignment.`
+        );
+        
+        if (confirmed) {
+            try {
+                const response = await fetch(`/assignment/${id}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error deleting assignment');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Network error occurred');
+            }
+        }
+    }
+</script>
+{% endblock %}

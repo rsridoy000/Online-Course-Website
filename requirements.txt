@@ -1,0 +1,19 @@
+Django==4.2
+djangorestframework==3.14.0
+pillow==12.2.0
+python-decouple==3.8
+pytz==2026.1.post1
+sqlparse==0.5.5
+asgiref==3.11.1
+tzdata==2026.1
+psycopg2-binary==2.9.9; sys_platform != "win32"
+dj-database-url==2.1.0
+cloudinary==1.38.0
+django-cloudinary-storage==0.3.0
+whitenoise==6.6.0
+xhtml2pdf==0.2.17
+reportlab==4.0.9
+svglib==1.2.1
+django-csp==3.8
+django-axes==6.3.0
+

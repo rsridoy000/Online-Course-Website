@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Quiz | {{ quiz.title }}{% endblock %}
+
+{% block content %}
+
+<!-- ── Page layout: narrow centered card ── -->
+<div style="max-width:620px;margin:0 auto;">
+
+
+    <!-- Header -->
+    <div style="margin-bottom:1.75rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.3rem;">
+            <a href="{% url 'quiz_detail' quiz.id %}"
+               style="width:34px;height:34px;border-radius:10px;background:white;
+                      border:1px solid #e2e8f0;display:flex;align-items:center;
+                      justify-content:center;color:#64748b;text-decoration:none;
+                      box-shadow:0 1px 4px rgba(0,0,0,0.05);transition:all .2s;flex-shrink:0;"
+               onmouseover="this.style.background='#f1f5f9'"
+               onmouseout="this.style.background='white'">
+                <i class="fas fa-arrow-left" style="font-size:0.8rem;"></i>
+            </a>
+            <div>
+                <h1 style="font-size:1.65rem;font-weight:800;color:#1e293b;
+                           letter-spacing:-0.5px;margin:0;">
+                    ✏️ Edit Quiz
+                </h1>
+                <p style="color:#94a3b8;font-size:0.88rem;margin:0;">
+                    Update details for <span style="color:#3b82f6;font-weight:700;">{{ quiz.title }}</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form card -->
+    <div style="background:white;border-radius:1.5rem;
+                box-shadow:0 10px 40px rgba(0,0,0,0.06);
+                border:1px solid #f1f5f9;overflow:hidden;">
+
+        <!-- Card gradient top strip (Aqua theme) -->
+        <div style="height:5px;background:linear-gradient(90deg,#06b6d4,#0891b2,#22d3ee);"></div>
+
+        <form method="post" style="padding:2rem;">
+            {% csrf_token %}
+
+            <!-- ── Quiz Title ── -->
+            <div class="cq-group">
+                <label class="cq-label" for="cq-title">
+                    <i class="fas fa-heading" style="color:#0891b2;"></i>
+                    Quiz Title
+                    <span class="cq-required" style="background:#ecfeff;color:#0891b2;border-color:#a5f3fc;">required</span>
+                </label>
+                <input type="text" id="cq-title" name="title"
+                       value="{{ quiz.title }}"
+                       placeholder="e.g. Chapter 3 — Algebra Quiz"
+                       required autofocus class="cq-input">
+            </div>
+
+            <!-- ── Description ── -->
+            <div class="cq-group">
+                <label class="cq-label" for="cq-description">
+                    <i class="fas fa-align-left" style="color:#6366f1;"></i>
+                    Description
+                    <span class="cq-optional">optional</span>
+                </label>
+                <textarea id="cq-description" name="description"
+                          placeholder="Brief description of what this quiz covers…"
+                          rows="4" class="cq-input">{{ quiz.description }}</textarea>
+            </div>
+
+            <!-- ── Two-col row: Time + Expiry ── -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;">
+
+                <!-- Time limit -->
+                <div class="cq-group" style="margin-bottom:0;">
+                    <label class="cq-label" for="cq-time">
+                        <i class="fas fa-clock" style="color:#06b6d4;"></i>
+                        Time Limit
+                        <span class="cq-required" style="background:#ecfeff;color:#0891b2;border-color:#a5f3fc;">required</span>
+                    </label>
+                    <div class="cq-input-wrap">
+                        <input type="number" id="cq-time" name="time_limit"
+                               value="{{ quiz.time_limit }}" min="1" max="180" required class="cq-input">
+                        <span class="cq-input-suffix">min</span>
+                    </div>
+                </div>
+
+                <!-- Expiry -->
+                <div class="cq-group" style="margin-bottom:0;">
+                    <label class="cq-label" for="cq-expires">
+                        <i class="fas fa-calendar-times" style="color:#ef4444;"></i>
+                        Expiry Date &amp; Time
+                        <span class="cq-optional">optional</span>
+                    </label>
+                    <input type="text" id="cq-expires" name="expires_at" class="cq-input flatpickr-datetime" 
+                           value="{{ quiz.expires_at|date:'Y-m-d H:i' }}" placeholder="dd/mm/yyyy - hh:mm">
+                </div>
+
+            </div>
+
+            <!-- Expiry hint -->
+            <div style="display:flex;align-items:flex-start;gap:8px;
+                        background:#fefce8;border:1px solid #fef08a;
+                        border-radius:0.75rem;padding:0.7rem 1rem;
+                        margin-top:1rem;">
+                <i class="fas fa-info-circle" style="color:#d97706;font-size:0.85rem;margin-top:2px;flex-shrink:0;"></i>
+                <p style="font-size:0.8rem;color:#854d0e;margin:0;line-height:1.5;">
+                    এই সময়ের পরে quiz submit করা যাবে না।
+                    শুধু correct answers দেখা যাবে। <em>(Optional)</em>
+                </p>
+            </div>
+
+            <!-- ── Divider ── -->
+            <div style="height:1px;background:#f1f5f9;margin:1.75rem 0;"></div>
+
+            <!-- ── Actions ── -->
+            <div style="display:flex;gap:0.75rem;">
+                <button type="submit" class="cq-btn cq-btn-primary" 
+                        style="background:linear-gradient(135deg,#06b6d4,#0891b2);box-shadow:0 4px 14px rgba(6,182,212,0.3);">
+                    <i class="fas fa-save"></i>
+                    Save Changes
+                </button>
+                <a href="{% url 'quiz_detail' quiz.id %}" class="cq-btn cq-btn-ghost">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+
+<style>
+/* ── Form group ───────────────── */
+.cq-group { margin-bottom: 1.3rem; }
+
+/* ── Label ────────────────────── */
+.cq-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+.cq-required {
+    margin-left: auto;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border: 1px solid #bfdbfe;
+}
+.cq-optional {
+    margin-left: auto;
+    background: #f8fafc;
+    color: #94a3b8;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border: 1px solid #e2e8f0;
+}
+
+/* ── Input ────────────────────── */
+.cq-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 0.85rem;
+    font-size: 0.92rem;
+    font-family: 'Outfit','Segoe UI',sans-serif;
+    color: #1e293b;
+    background: #f8fafc;
+    transition: all 0.2s;
+    outline: none;
+    box-sizing: border-box;
+    resize: vertical;
+}
+.cq-input::placeholder { color: #cbd5e1; }
+.cq-input:focus {
+    border-color: #06b6d4;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+}
+
+/* ── Input with suffix box ──────── */
+.cq-input-wrap { position: relative; }
+.cq-input-wrap .cq-input { padding-right: 3.2rem; }
+.cq-input-suffix {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+/* ── Buttons ──────────────────── */
+.cq-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    border: none;
+    transition: all 0.22s;
+    font-family: 'Outfit','Segoe UI',sans-serif;
+}
+.cq-btn-primary {
+    color: white;
+    flex: 1;
+    justify-content: center;
+}
+.cq-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(6,182,212,0.38) !important;
+    color: white;
+}
+.cq-btn-ghost {
+    background: #f8fafc;
+    color: #64748b;
+    border: 1.5px solid #e2e8f0;
+}
+.cq-btn-ghost:hover { background: #f1f5f9; color: #1e293b; }
+
+/* ── Responsive ───────────────── */
+@media (max-width: 640px) {
+    div[style*="max-width:620px"] { width: 95%; }
+    form { padding: 1.25rem !important; }
+    h1 { font-size: 1.35rem !important; }
+    div[style*="display:flex;gap:0.75rem"] { flex-direction: column; }
+    .cq-btn { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 540px) {
+    div[style*="grid-template-columns:1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+        gap: 1.3rem !important;
+    }
+}
+</style>
+
+{% endblock %}

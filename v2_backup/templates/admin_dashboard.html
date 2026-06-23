@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Liquid_Triple_R{% endblock %}
+
+{% block content %}
+<div class="admin-v2-container">
+    <div class="admin-header-v2">
+        <h1>📊 Admin Dashboard</h1>
+        <p>Welcome back, <span style="color: var(--admin-primary); font-weight: 700;">{{ user.username }}</span>! Here's what's happening today.</p>
+    </div>
+
+    <!-- Statistics Grid V2 -->
+    <div class="stats-grid-v2">
+        <div class="stat-card-v2">
+            <div class="stat-icon-v2 icon-blue">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <div class="stat-info-v2">
+                <h3>{{ total_quizzes }}</h3>
+                <p>Total Quizzes</p>
+            </div>
+        </div>
+        <div class="stat-card-v2">
+            <div class="stat-icon-v2 icon-purple">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stat-info-v2">
+                <h3>{{ total_attempts }}</h3>
+                <p>Student Attempts</p>
+            </div>
+        </div>
+        <div class="stat-card-v2">
+            <div class="stat-icon-v2 icon-amber">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="stat-info-v2">
+                <h3>{{ total_warnings }}</h3>
+                <p>Warning Logs</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Tabs V2 -->
+    <div class="tabs-v2">
+        <button class="tab-btn-v2 active" onclick="switchTab('quizzes', this)">
+            <i class="fas fa-clipboard-list"></i> Quizzes
+        </button>
+        <button class="tab-btn-v2" onclick="switchTab('attempts', this)">
+            <i class="fas fa-history"></i> Attempts
+        </button>
+        <button class="tab-btn-v2" onclick="switchTab('scores', this)">
+            <i class="fas fa-star"></i> Adjust Scores
+        </button>
+        <button class="tab-btn-v2" onclick="switchTab('warnings', this)">
+            <i class="fas fa-shield-alt"></i> Warnings
+        </button>
+    </div>
+
+    <!-- Manage Quizzes Tab -->
+    <div id="quizzes-tab" class="tab-content active slide-up">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);">📝 Manage Quizzes</h2>
+            <a href="{% url 'create_quiz' %}" class="btn btn-primary" style="padding: 0.6rem 1.2rem; border-radius: 0.75rem; background: var(--admin-primary); border: none; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: white;">
+                <i class="fas fa-plus"></i> Create Quiz
+            </a>
+        </div>
+        
+        <div class="card-v2">
+            {% if quizzes %}
+                <div class="table-responsive-v2">
+                    <table class="admin-table-v2">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Questions</th>
+                                <th>Time Limit</th>
+                                <th>Attempts</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quiz in quizzes %}
+                                <tr>
+                                    <td><strong style="color: var(--admin-primary);">{{ quiz.title }}</strong></td>
+                                    <td><span class="badge-v2 badge-info-v2">{{ quiz.questions.count }} Qs</span></td>
+                                    <td>{{ quiz.time_limit }} min</td>
+                                    <td>{{ quiz.attempts.count }}</td>
+                                    <td>{{ quiz.created_at|date:"d M Y" }}</td>
+                                    <td class="action-buttons">
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <a href="{% url 'quiz_detail' quiz.id %}" class="btn btn-sm btn-info" style="background:#e0f2fe; color:#0369a1; border:none; padding:4px 10px; border-radius:6px;"><i class="fas fa-eye"></i></a>
+                                            <a href="{% url 'edit_quiz' quiz.id %}" class="btn btn-sm btn-warning" style="background:#fef3c7; color:#b45309; border:none; padding:4px 10px; border-radius:6px;"><i class="fas fa-edit"></i></a>
+                                            <a href="{% url 'delete_quiz' quiz.id %}" class="btn btn-sm btn-danger confirm-link" data-title="Delete Quiz?" data-message="Are you sure you want to delete this quiz?" style="background:#fee2e2; color:#b91c1c; border:none; padding:4px 10px; border-radius:6px;"><i class="fas fa-trash"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div style="padding: 4rem 2rem; text-align: center; color: var(--text-secondary);">
+                    <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p>No quizzes created yet. <a href="{% url 'create_quiz' %}" style="color: var(--admin-primary); font-weight: 700;">Create one now</a></p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Student Attempts Tab -->
+    <div id="attempts-tab" class="tab-content slide-up" style="display: none;">
+        <div class="section-header" style="margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);">👥 Student Attempts</h2>
+        </div>
+        
+        <div class="card-v2">
+            {% if all_attempts %}
+                <div class="table-responsive-v2">
+                    <table class="admin-table-v2">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Quiz</th>
+                                <th>Score</th>
+                                <th>Performance</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in all_attempts %}
+                                <tr>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                            {% if attempt.student and attempt.student.student_profile.profile_image %}
+                                                <img src="{{ attempt.student.student_profile.profile_image.url }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                                            {% else %}
+                                                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--admin-primary-light); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">{{ attempt.student_name|slice:":1"|upper }}</div>
+                                            {% endif %}
+                                            <span style="font-weight: 600;">{{ attempt.student_name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ attempt.quiz.title }}</td>
+                                    <td><span style="font-weight: 700; color: var(--admin-primary);">{{ attempt.score }}</span>/{{ attempt.total_questions }}</td>
+                                    <td>
+                                        {% if attempt.total_questions > 0 %}
+                                            {% widthratio attempt.score attempt.total_questions 100 as pct %}
+                                            <div style="width: 100px; height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 4px;">
+                                                <div style="width: {{ pct }}%; height: 100%; background: {% if pct|add:0 < 40 %}#ef4444{% elif pct|add:0 < 70 %}#f59e0b{% else %}#10b981{% endif %};"></div>
+                                            </div>
+                                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">{{ pct }}%</span>
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attempt.is_submitted %}
+                                            <span class="badge-v2 badge-success-v2"><i class="fas fa-check-circle"></i> Result Out</span>
+                                        {% else %}
+                                            <span class="badge-v2 badge-warning-v2"><i class="fas fa-spinner fa-spin"></i> Live</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><span style="font-size: 0.8rem; color: var(--text-secondary);">{{ attempt.started_at|date:"d M, H:i" }}</span></td>
+                                    <td>
+                                        <a href="{% url 'view_attempt' attempt.id %}" class="btn btn-sm btn-info" style="background:var(--admin-bg-soft); color:var(--text-primary); border:1px solid var(--border-color); padding:4px 12px; border-radius:6px; font-weight: 700; text-decoration: none;">View</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div style="padding: 4rem 2rem; text-align: center; color: var(--text-secondary);">
+                    <i class="fas fa-users-slash" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p>No student attempts recorded yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Adjust Scores Tab -->
+    <div id="scores-tab" class="tab-content slide-up" style="display: none;">
+        <div class="section-header" style="margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);">🎯 Adjust Marks</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Manually modify student scores for submitted attempts.</p>
+        </div>
+
+        <div class="card-v2">
+            {% if all_attempts %}
+                <div class="table-responsive-v2">
+                    <table class="admin-table-v2">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Quiz</th>
+                                <th>Current Score</th>
+                                <th>Adjustment Control</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in all_attempts %}
+                                {% if attempt.is_submitted %}
+                                    <tr id="row-{{ attempt.id }}">
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                                {% if attempt.student and attempt.student.student_profile.profile_image %}
+                                                    <img src="{{ attempt.student.student_profile.profile_image.url }}" style="width: 32px; height: 32px; border-radius: 50%;">
+                                                {% else %}
+                                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--admin-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">{{ attempt.student_name|slice:":1"|upper }}</div>
+                                                {% endif %}
+                                                <span style="font-weight: 600;">{{ attempt.student_name }}</span>
+                                            </div>
+                                        </td>
+                                        <td>{{ attempt.quiz.title }}</td>
+                                        <td>
+                                            <div style="display: flex; align-items: baseline; gap: 4px;">
+                                                <span id="score-{{ attempt.id }}" style="font-size: 1.25rem; font-weight: 800; color: var(--admin-primary);">{{ attempt.score }}</span>
+                                                <span style="color: var(--text-secondary); font-size: 0.8rem;">/ {{ attempt.total_questions }}</span>
+                                                <span id="pct-{{ attempt.id }}" style="font-size: 0.75rem; font-weight: 700; color: var(--admin-success); margin-left:8px;">({% widthratio attempt.score attempt.total_questions 100 %}%)</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="score-control-v2">
+                                                <button class="score-btn-v2 btn-minus-v2" onclick="adjustScore({{ attempt.id }}, 'minus')"><i class="fas fa-minus"></i></button>
+                                                <input type="number" id="amt-{{ attempt.id }}" value="1" min="1" class="score-input-v2">
+                                                <button class="score-btn-v2 btn-plus-v2" onclick="adjustScore({{ attempt.id }}, 'add')"><i class="fas fa-plus"></i></button>
+                                                <button class="score-btn-v2 btn-set-v2" onclick="setScore({{ attempt.id }})">SET</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div style="padding: 4rem 2rem; text-align: center; color: var(--text-secondary);">
+                    <i class="fas fa-edit" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p>No submitted attempts available for adjustment.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Warning Logs Tab -->
+    <div id="warnings-tab" class="tab-content slide-up" style="display: none;">
+        <div class="section-header" style="margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);">⚠️ Suspicious Activity</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Real-time logs of student activity during quizzes.</p>
+        </div>
+        
+        <div class="card-v2">
+            {% if all_warnings %}
+                <div class="table-responsive-v2">
+                    <table class="admin-table-v2">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Quiz</th>
+                                <th>Activity Type</th>
+                                <th>IP Address</th>
+                                <th>Timeline</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for warning in all_warnings %}
+                                <tr class="warning-row-glass warning-{{ warning.warning_type }}">
+                                    <td><strong style="font-weight: 700;">{{ warning.attempt.student_name }}</strong></td>
+                                    <td>{{ warning.attempt.quiz.title }}</td>
+                                    <td>
+                                        {% if warning.warning_type == 'tab_switch' %}
+                                            <span class="badge-v2 badge-warning-v2"><i class="fas fa-external-link-alt"></i> Tab Switch</span>
+                                        {% elif warning.warning_type == 'page_refresh' %}
+                                            <span class="badge-v2 badge-danger-v2"><i class="fas fa-sync-alt"></i> Page Refresh</span>
+                                        {% elif warning.warning_type == 'page_exit' %}
+                                            <span class="badge-v2 badge-danger-v2" style="background:#000; color:#fff;"><i class="fas fa-times-circle"></i> Page Exit</span>
+                                        {% elif warning.warning_type == 'focus_lost' %}
+                                            <span class="badge-v2 badge-info-v2"><i class="fas fa-eye-slash"></i> Focus Lost</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><code style="background: var(--admin-bg-soft); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">{{ warning.ip_address }}</code></td>
+                                    <td><span style="font-size: 0.8rem; color: var(--text-secondary);">{{ warning.timestamp|date:"d M, H:i:s" }}</span></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div style="padding: 4rem 2rem; text-align: center; color: var(--text-secondary);">
+                    <i class="fas fa-shield-alt" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p>System clean. No suspicious activity detected.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tabName, btn) {
+        // Hide all contents with a quick fade
+        document.querySelectorAll('.tab-content').forEach(t => {
+            t.style.display = 'none';
+            t.classList.remove('slide-up');
+        });
+        
+        // Remove active class from all buttons
+        document.querySelectorAll('.tab-btn-v2').forEach(b => b.classList.remove('active'));
+        
+        // Show target content
+        const target = document.getElementById(tabName + '-tab');
+        target.style.display = 'block';
+        setTimeout(() => target.classList.add('slide-up'), 10);
+        
+        // Mark button as active
+        btn.classList.add('active');
+    }
+
+    function getAmount(attemptId) {
+        return parseInt(document.getElementById('amt-' + attemptId).value) || 1;
+    }
+
+    function adjustScore(attemptId, action) {
+        const amount = getAmount(attemptId);
+        fetch(`/attempt/${attemptId}/adjust-score/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+            body: JSON.stringify({action: action, amount: amount})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                updateScoreUI(attemptId, data, action);
+            }
+        });
+    }
+
+    function setScore(attemptId) {
+        const amount = getAmount(attemptId);
+        fetch(`/attempt/${attemptId}/adjust-score/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+            body: JSON.stringify({action: 'set', amount: amount})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                updateScoreUI(attemptId, data, 'set');
+            }
+        });
+    }
+
+    function updateScoreUI(attemptId, data, action) {
+        const scoreElem = document.getElementById('score-' + attemptId);
+        const pctElem = document.getElementById('pct-' + attemptId);
+        
+        // Animate count
+        scoreElem.textContent = data.new_score;
+        pctElem.textContent = '(' + data.percentage + '%)';
+        
+        flashRow(attemptId, action);
+    }
+
+    function flashRow(attemptId, action) {
+        const row = document.getElementById('row-' + attemptId);
+        const color = action === 'add' ? 'rgba(16, 185, 129, 0.1)' : action === 'minus' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(79, 70, 229, 0.1)';
+        row.style.background = color;
+        row.style.transition = 'background 0.3s';
+        setTimeout(() => row.style.background = '', 800);
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Auto-refresh warning logs if on that tab
+    setInterval(() => {
+        const warningsTab = document.getElementById('warnings-tab');
+        if (warningsTab.style.display !== 'none') {
+            // Optional: Implement AJAX refresh for warnings instead of full page reload
+            // For now, keeping it simple as per original
+            // location.reload(); 
+        }
+    }, 30000);
+</script>
+{% endblock %}

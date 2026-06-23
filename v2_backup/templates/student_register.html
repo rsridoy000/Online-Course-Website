@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+{% block title %}Register - Liquid_Triple_R{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+    <!-- Animated background bubbles -->
+    <div class="circles">
+        <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
+    </div>
+
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="icon-blob">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h2>Create Account</h2>
+            <p>Join our academic community today</p>
+        </div>
+
+        <form method="POST" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Full Name</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="full_name" value="{{ form_data.full_name }}" placeholder="Enter your full name" required>
+                </div>
+                {% if errors.full_name %}<span class="field-error"><i class="fas fa-circle-exclamation"></i> {{ errors.full_name }}</span>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" value="{{ form_data.email }}" placeholder="Enter your email" required>
+                </div>
+                {% if errors.email %}<span class="field-error"><i class="fas fa-circle-exclamation"></i> {{ errors.email }}</span>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" id="id_password" placeholder="Minimum 6 characters" required>
+                    <i class="far fa-eye eye-toggle" onclick="togglePassword('id_password', this)"></i>
+                </div>
+                <div class="strength-meter" id="strengthMeter"><div class="strength-bar" id="strengthBar"></div></div>
+                <span id="strengthLabel" class="strength-label"></span>
+                {% if errors.password %}<span class="field-error"><i class="fas fa-circle-exclamation"></i> {{ errors.password }}</span>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-shield-check"></i>
+                    <input type="password" name="password2" id="id_password2" placeholder="Repeat your password" required>
+                    <i class="far fa-eye eye-toggle" onclick="togglePassword('id_password2', this)"></i>
+                </div>
+                <div id="matchStatus" class="match-status"></div>
+                {% if errors.password2 %}<span class="field-error"><i class="fas fa-circle-exclamation"></i> {{ errors.password2 }}</span>{% endif %}
+            </div>
+
+            <button type="submit" class="btn-primary-glow">
+                <span>Register Account</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="{% url 'student_login' %}">Login now</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-glow: #3b82f6;
+        --secondary-glow: #8b5cf6;
+        --glass-bg: rgba(255, 255, 255, 0.75);
+        --glass-border: rgba(255, 255, 255, 0.5);
+    }
+
+    .auth-wrapper {
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(-45deg, #f1f5f9, #e2e8f0, #dbeafe, #f1f5f9);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+        overflow-y: auto;
+        padding: 4rem 0;
+    }
+
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* Background Circles Animation */
+    .circles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -1;
+    }
+    .circles li {
+        position: absolute;
+        display: block;
+        list-style: none;
+        width: 20px;
+        height: 20px;
+        background: rgba(59, 130, 246, 0.1);
+        animation: animate 25s linear infinite;
+        bottom: -150px;
+        border-radius: 50%;
+    }
+    .circles li:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+    .circles li:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+    .circles li:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+    .circles li:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
+    .circles li:nth-child(5) { left: 65%; width: 20px; height: 20px; animation-delay: 0s; }
+    .circles li:nth-child(6) { left: 75%; width: 110px; height: 110px; animation-delay: 3s; }
+
+    @keyframes animate {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0; }
+        100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; }
+    }
+
+    .auth-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 2rem;
+        padding: 3rem;
+        width: 100%;
+        max-width: 480px; /* Slightly wider for registration */
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        animation: cardEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        margin: auto;
+    }
+
+    @keyframes cardEnter {
+        from { opacity: 0; transform: scale(0.9) translateY(30px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .auth-header { text-align: center; margin-bottom: 2rem; }
+    
+    .icon-blob {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border-radius: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+        color: white;
+        font-size: 1.5rem;
+        box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .auth-header h2 { font-size: 1.75rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; letter-spacing: -0.5px; }
+    .auth-header p { color: #64748b; font-size: 0.95rem; }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.875rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem; }
+
+    .input-wrapper { position: relative; }
+    .input-wrapper i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; transition: color 0.3s; }
+    
+    .input-wrapper input {
+        width: 100%;
+        padding: 0.875rem 3rem 0.875rem 2.75rem;
+        background: white;
+        border: 2px solid #f1f5f9;
+        border-radius: 1rem;
+        font-size: 0.95rem;
+        font-family: inherit;
+        transition: all 0.3s;
+        box-sizing: border-box;
+    }
+
+    .input-wrapper input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+    .input-wrapper input:focus + i { color: #3b82f6; }
+
+    /* Strength Meter Styling */
+    .strength-meter {
+        margin-top: 0.5rem;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        display: none;
+    }
+    .strength-bar { height: 100%; width: 0%; transition: all 0.4s ease; }
+    .strength-label { font-size: 0.75rem; font-weight: 700; margin-top: 0.25rem; display: block; }
+
+    .strength-weak { background: #ef4444; width: 33.33%; }
+    .strength-medium { background: #f59e0b; width: 66.66%; }
+    .strength-strong { background: #22c55e; width: 100%; }
+
+    /* Password Match Styling */
+    .match-status {
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin-top: 0.5rem;
+        display: none;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .match-status.error { color: #ef4444; }
+    .match-status.success { color: #22c55e; }
+
+    /* Eye Toggle - Overriding global icon style */
+    .input-wrapper .eye-toggle {
+        position: absolute;
+        right: 1rem;
+        left: auto !important;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #94a3b8;
+        padding: 0.5rem;
+        transition: color 0.2s;
+        z-index: 10;
+        display: block;
+    }
+    .input-wrapper .eye-toggle:hover { color: #3b82f6; }
+
+    .field-error {
+        color: #ef4444;
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .btn-primary-glow {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #1e293b, #334155);
+        color: white;
+        border: none;
+        border-radius: 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        transition: all 0.3s;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        margin-top: 1rem;
+    }
+
+    .btn-primary-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        background: #0f172a;
+    }
+
+    .auth-footer { text-align: center; margin-top: 2rem; color: #64748b; font-size: 0.95rem; }
+    .auth-footer a { color: #3b82f6; font-weight: 700; text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .auth-footer a:hover { border-bottom-color: #3b82f6; }
+
+    @media (max-width: 480px) {
+        .auth-card { padding: 2rem 1.5rem; border-radius: 1.5rem; }
+    }
+</style>
+
+<script>
+    function togglePassword(inputId, icon) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('far', 'fas');
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fas', 'far');
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    const passwordInput = document.getElementById('id_password');
+    const confirmInput = document.getElementById('id_password2');
+    const strengthMeter = document.getElementById('strengthMeter');
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthLabel = document.getElementById('strengthLabel');
+    const matchStatus = document.getElementById('matchStatus');
+
+    passwordInput.addEventListener('input', function() {
+        const val = this.value;
+        if (val.length > 0) {
+            strengthMeter.style.display = 'block';
+            let strength = 0;
+            if (val.length >= 6) strength++;
+            if (val.match(/[A-Z]/)) strength++;
+            if (val.match(/[0-9]/)) strength++;
+            if (val.match(/[^A-Za-z0-9]/)) strength++;
+
+            strengthBar.className = 'strength-bar';
+            if (strength <= 1) {
+                strengthBar.classList.add('strength-weak');
+                strengthLabel.textContent = 'Weak Password';
+                strengthLabel.style.color = '#ef4444';
+            } else if (strength === 2 || strength === 3) {
+                strengthBar.classList.add('strength-medium');
+                strengthLabel.textContent = 'Medium Strength';
+                strengthLabel.style.color = '#f59e0b';
+            } else {
+                strengthBar.classList.add('strength-strong');
+                strengthLabel.textContent = 'Strong Password';
+                strengthLabel.style.color = '#22c55e';
+            }
+        } else {
+            strengthMeter.style.display = 'none';
+            strengthLabel.textContent = '';
+        }
+        checkMatch();
+    });
+
+    confirmInput.addEventListener('input', checkMatch);
+
+    function checkMatch() {
+        const p1 = passwordInput.value;
+        const p2 = confirmInput.value;
+        
+        // Rule: Don't show anything until lengths match
+        if (p2.length === 0 || p2.length < p1.length) {
+            matchStatus.style.display = 'none';
+            return;
+        }
+
+        matchStatus.style.display = 'flex';
+        if (p1 === p2) {
+            matchStatus.className = 'match-status success';
+            matchStatus.innerHTML = '<i class="fas fa-check-circle"></i> Password Match';
+        } else {
+            matchStatus.className = 'match-status error';
+            matchStatus.innerHTML = '<i class="fas fa-times-circle"></i> Password Mismatch';
+        }
+    }
+</script>
+{% endblock %}

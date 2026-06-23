@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<style>
+    .report-container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .header-card {
+        background: #1e293b;
+        padding: 2.5rem;
+        border-radius: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    }
+    .header-card h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .header-card p { color: #94a3b8; font-size: 1.1rem; }
+
+    .filter-panel {
+        background: white;
+        padding: 2rem;
+        border-radius: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        align-items: flex-end;
+    }
+    .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .input-group label { font-weight: 700; color: #1e293b; font-size: 0.9rem; }
+    .date-input {
+        padding: 0.75rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-weight: 600;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .date-input:focus { border-color: #3b82f6; }
+
+    .generate-btn {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 0.85rem 2rem;
+        border-radius: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    .generate-btn:hover { background: #2563eb; transform: translateY(-2px); }
+
+    .report-table-card {
+        background: white;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .report-table th {
+        background: #f8fafc;
+        padding: 1.25rem 1.5rem;
+        text-align: left;
+        font-weight: 700;
+        color: #64748b;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+    .report-table td {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .percentage-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 800;
+        font-size: 0.8rem;
+    }
+    .badge-high { background: #dcfce7; color: #10b981; }
+    .badge-mid { background: #fef9c3; color: #ca8a04; }
+    .badge-low { background: #fee2e2; color: #ef4444; }
+
+    .print-only { display: none !important; }
+    @media print {
+        @page { size: auto; margin: 0mm; }
+        body { margin: 0; background: white !important; }
+        .filter-panel, .header-card, .sidebar, .top-navbar, .btn-download, .notice-bell-btn, .nav-user-info, .sidebar-overlay, #sidebar-overlay { display: none !important; }
+        .print-only { display: block !important; }
+        .report-container { padding: 2cm; max-width: 100%; margin: 0; }
+        .report-table-card { box-shadow: none; border: 1px solid #e2e8f0; border-radius: 0; }
+        .main-content-area { margin: 0 !important; padding: 0 !important; }
+    }
+</style>
+
+<div class="report-container">
+    <!-- Print-only header -->
+    <div class="print-only" style="margin-bottom: 2rem; border-bottom: 3px solid #1e293b; padding-bottom: 1rem;">
+        <table style="width: 100%; border: none;">
+            <tr>
+                <td style="width: 50px; vertical-align: middle;">
+                    <div style="width: 40px; height: 40px; background: #2563eb; border-radius: 10px; display: block; text-align: center; line-height: 40px;">
+                        <i class="fas fa-graduation-cap" style="color: white; font-size: 20px;"></i>
+                    </div>
+                </td>
+                <td style="vertical-align: middle; padding-left: 12px;">
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: -0.5px;">Liquid_Triple_R</h2>
+                    <p style="margin: 2px 0 0; color: #64748b; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Learning Management System</p>
+                </td>
+                <td style="text-align: right; vertical-align: middle;">
+                    <h1 style="margin: 0; color: #1e293b; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Attendance Report</h1>
+                    <p style="margin: 4px 0 0; color: #64748b; font-weight: 700; font-size: 12px;">
+                        {% if start_display == end_display %}
+                            Date: {{ start_display }}
+                        {% else %}
+                            Range: {{ start_display }} to {{ end_display }}
+                        {% endif %}
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="header-card">
+        <h1><i class="fas fa-file-invoice" style="color: #60a5fa;"></i> Attendance Report</h1>
+        <p>Analyze student presence records and generate detailed summaries.</p>
+    </div>
+
+    <div class="filter-panel">
+        <form method="GET" class="filter-grid">
+            <div class="input-group">
+                <label>Select Date / From</label>
+                <input type="text" name="start_date" class="date-input flatpickr-date" value="{{ start_date|default:'' }}" placeholder="dd/mm/yyyy" required>
+            </div>
+            <div class="input-group">
+                <label>To Date (Optional)</label>
+                <input type="text" name="end_date" class="date-input flatpickr-date" value="{{ end_date|default:'' }}" placeholder="dd/mm/yyyy (Optional)">
+            </div>
+            <button type="submit" class="generate-btn">
+                <i class="fas fa-sync-alt"></i> Generate Report
+            </button>
+            <button type="button" onclick="window.print()" class="generate-btn" style="background: #1e293b;">
+                <i class="fas fa-print"></i> Print / PDF
+            </button>
+        </form>
+    </div>
+
+    {% if report_data %}
+    <div class="report-table-card">
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Student Details</th>
+                    <th>Present</th>
+                    <th>Absent</th>
+                    <th>Total Days</th>
+                    <th>Attendance %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in report_data %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 800; color: #1e293b;">{{ item.student.user.get_full_name }}</div>
+                    </td>
+                    <td style="font-weight: 700; color: #10b981;">{{ item.present }}</td>
+                    <td style="font-weight: 700; color: #ef4444;">{{ item.absent }}</td>
+                    <td style="font-weight: 700; color: #1e293b;">{{ item.total }}</td>
+                    <td>
+                        {% with percent=item.present|div:item.total|mul:100 %}
+                        <span class="percentage-badge 
+                            {% if percent >= 80 %}badge-high
+                            {% elif percent >= 60 %}badge-mid
+                            {% else %}badge-low{% endif %}">
+                            {{ percent|floatformat:1 }}%
+                        </span>
+                        {% endwith %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 4rem; background: white; border-radius: 1.5rem; color: #94a3b8;">
+        <i class="fas fa-calendar-alt" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+        <p style="font-weight: 600;">Select a date range and click "Generate Report" to view data.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

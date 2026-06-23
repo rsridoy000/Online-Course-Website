@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block title %}Verify OTP - Liquid_Triple_R{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+    <!-- Animated background bubbles -->
+    <div class="circles">
+        <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
+    </div>
+
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="icon-blob">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+            <h2>Verify Your Email</h2>
+            <p>We've sent a 6-digit code to <strong>{{ email }}</strong></p>
+        </div>
+
+        {% if error %}
+        <div class="alert-error">
+            <i class="fas fa-exclamation-circle"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" class="auth-form" id="otpForm">
+            {% csrf_token %}
+            <div class="otp-input-container">
+                <input type="text" name="otp1" maxlength="1" class="otp-box" required autofocus>
+                <input type="text" name="otp2" maxlength="1" class="otp-box" required>
+                <input type="text" name="otp3" maxlength="1" class="otp-box" required>
+                <input type="text" name="otp4" maxlength="1" class="otp-box" required>
+                <input type="text" name="otp5" maxlength="1" class="otp-box" required>
+                <input type="text" name="otp6" maxlength="1" class="otp-box" required>
+            </div>
+
+            <button type="submit" class="btn-primary-glow">
+                <span>Verify & Create Account</span>
+                <i class="fas fa-check-double"></i>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Didn't receive the code? <a href="{% url 'resend_otp' %}" class="resend-link">Resend OTP</a>
+        </div>
+        
+        <div class="back-link">
+            <a href="{% url 'student_register' %}">
+                <i class="fas fa-arrow-left"></i> Back to Registration
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-glow: #3b82f6;
+        --secondary-glow: #8b5cf6;
+        --glass-bg: rgba(255, 255, 255, 0.75);
+        --glass-border: rgba(255, 255, 255, 0.5);
+    }
+
+    .auth-wrapper {
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(-45deg, #f1f5f9, #e2e8f0, #dbeafe, #f1f5f9);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+        padding: 2rem 0;
+        overflow-y: auto;
+    }
+
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .circles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: -1; }
+    .circles li { position: absolute; display: block; list-style: none; width: 20px; height: 20px; background: rgba(59, 130, 246, 0.1); animation: animate 25s linear infinite; bottom: -150px; border-radius: 50%; }
+    .circles li:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+    .circles li:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+    .circles li:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+    .circles li:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
+
+    @keyframes animate {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0; }
+        100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; }
+    }
+
+    .auth-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 2rem;
+        padding: 3rem;
+        width: 100%;
+        max-width: 440px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        animation: cardEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        margin: auto;
+    }
+
+    @keyframes cardEnter {
+        from { opacity: 0; transform: scale(0.9) translateY(30px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .auth-header { text-align: center; margin-bottom: 2.5rem; }
+    .icon-blob { width: 64px; height: 64px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: white; font-size: 1.5rem; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
+    
+    .auth-header h2 { font-size: 1.75rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
+    .auth-header p { color: #64748b; font-size: 0.95rem; }
+
+    .otp-input-container {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .otp-box {
+        width: 50px;
+        height: 55px;
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 800;
+        border: 2px solid #f1f5f9;
+        border-radius: 1rem;
+        background: white;
+        transition: all 0.3s;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .otp-box:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .alert-error {
+        background: #fee2e2;
+        border-left: 4px solid #ef4444;
+        color: #b91c1c;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .btn-primary-glow {
+        width: 100%;
+        padding: 1.125rem;
+        background: linear-gradient(135deg, #1e293b, #334155);
+        color: white;
+        border: none;
+        border-radius: 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        transition: all 0.3s;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .auth-footer { text-align: center; margin-top: 2rem; color: #64748b; font-size: 0.95rem; }
+    .resend-link { color: #3b82f6; font-weight: 700; text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .resend-link:hover { border-bottom-color: #3b82f6; }
+
+    .back-link { text-align: center; margin-top: 1.5rem; }
+    .back-link a { color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: color 0.2s; }
+    .back-link a:hover { color: #64748b; }
+
+    @media (max-width: 480px) {
+        .auth-card { padding: 2.5rem 1.5rem; }
+        .otp-box { width: 40px; height: 48px; font-size: 1.25rem; }
+    }
+</style>
+
+<script>
+    const boxes = document.querySelectorAll('.otp-box');
+    boxes.forEach((box, index) => {
+        box.addEventListener('input', (e) => {
+            if (e.target.value.length === 1 && index < boxes.length - 1) {
+                boxes[index + 1].focus();
+            }
+        });
+
+        box.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && e.target.value.length === 0 && index > 0) {
+                boxes[index - 1].focus();
+            }
+        });
+
+        // Handle pasting whole OTP
+        box.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const data = e.clipboardData.getData('text').slice(0, 6);
+            data.split('').forEach((char, i) => {
+                if (boxes[index + i]) boxes[index + i].value = char;
+            });
+            if (boxes[index + data.length - 1]) boxes[index + data.length - 1].focus();
+        });
+    });
+</script>
+{% endblock %}

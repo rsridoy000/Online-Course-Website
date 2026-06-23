@@ -1,0 +1,455 @@
+{% extends "base.html" %}
+{% block title %}Admin Profile | Liquid_Triple_R{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --profile-primary: #1e293b;
+        --profile-secondary: #3b82f6;
+        --profile-glass: rgba(255, 255, 255, 0.7);
+        --profile-border: rgba(255, 255, 255, 0.4);
+    }
+
+    .profile-container {
+        max-width: 1100px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header Profile Card */
+    .profile-header-card {
+        background: radial-gradient(circle at top right, #1e293b, #334155);
+        border-radius: 1.5rem;
+        padding: 2.5rem 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+
+    .profile-header-card::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 50%;
+    }
+
+    .profile-avatar-section {
+        position: relative;
+        z-index: 2;
+    }
+
+    .main-avatar-wrapper {
+        width: 100px;
+        height: 100px;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease;
+    }
+
+    .main-avatar-wrapper:hover {
+        transform: scale(1.05);
+    }
+
+    .main-avatar-img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .main-avatar-letter {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #1e293b;
+    }
+
+    .edit-avatar-trigger {
+        position: absolute;
+        bottom: -10px;
+        right: -10px;
+        background: #3b82f6;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+        border: 3px solid #1e293b;
+        transition: all 0.2s;
+    }
+
+    .edit-avatar-trigger:hover { transform: scale(1.1); background: #2563eb; }
+
+    .profile-info-section { z-index: 2; }
+    
+    .profile-info-section .badge {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(4px);
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1rem;
+        display: inline-block;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .profile-info-section h1 {
+        font-size: 1.85rem;
+        font-weight: 800;
+        margin-bottom: 0.35rem;
+        letter-spacing: -0.5px;
+    }
+
+    .profile-info-section .email {
+        opacity: 0.7;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 2rem;
+    }
+
+    /* Stats Card Section */
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .data-card {
+        background: var(--profile-glass);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--profile-border);
+        border-radius: 1.25rem;
+        padding: 1.25rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .data-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+    
+    .data-card .value { font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-bottom: 0.2rem; }
+    .data-card .label { font-size: 0.85rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+
+    /* Action & Form Cards */
+    .section-card {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .section-card h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.875rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem; }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #f1f5f9;
+        border-radius: 0.75rem;
+        font-size: 0.95rem;
+        font-family: 'Outfit', sans-serif;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+        background: #f8fafc;
+        color: #1e293b;
+    }
+
+    /* Premium Select Styling */
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1.25rem;
+        padding-right: 2.5rem;
+        cursor: pointer;
+    }
+
+    .form-control:focus { 
+        outline: none; 
+        border-color: #3b82f6; 
+        background: white;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+    
+    .form-control:disabled { 
+        background: #f1f5f9; 
+        color: #94a3b8; 
+        cursor: not-allowed;
+    }
+
+    .form-section-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94a3b8;
+        font-weight: 700;
+        margin: 2rem 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-submit {
+        background: #1e293b;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-submit:hover { background: #334155; transform: scale(1.02); }
+
+    /* Quick Links */
+    .links-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .link-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 1rem;
+        text-decoration: none;
+        color: #475569;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .link-item i { width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #3b82f6; }
+    .link-item:hover { background: #eff6ff; color: #1e40af; }
+    .link-item.logout { color: #dc2626; }
+    .link-item.logout i { color: #dc2626; background: #fee2e2; }
+
+    @media (max-width: 900px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+        .profile-header-card { flex-direction: column; text-align: center; padding: 3rem 2rem; }
+        .profile-info-section h1 { font-size: 2rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Header Card -->
+    <div class="profile-header-card">
+        <div class="profile-avatar-section">
+            <div class="main-avatar-wrapper">
+                {% if profile and profile.profile_image %}
+                    <img src="{{ profile.profile_image.url }}" class="main-avatar-img" id="avatarImg" alt="profile">
+                {% else %}
+                    <div class="main-avatar-letter" id="avatarLetter">{{ admin_user.first_name|first|upper|default:"A" }}</div>
+                {% endif %}
+            </div>
+            <label for="imgInput" class="edit-avatar-trigger" title="Change Photo">
+                <i class="fas fa-camera"></i>
+            </label>
+        </div>
+
+        <div class="profile-info-section">
+            <span class="badge" style="background: white; color: #1e293b; display: inline-flex; align-items: center; gap: 8px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: {{ teacher_profile.status_color|default:'#64748b' }};"></span>
+                {{ teacher_profile.status|default:"Offline" }}
+            </span>
+            <div style="margin-top: 0.5rem; opacity: 0.8; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                {{ teacher_profile.designation|default:"System Administrator" }}
+            </div>
+            <h1 style="margin-top: 0.25rem;">{{ admin_user.get_full_name|default:admin_user.username }}</h1>
+            <div class="email">
+                <i class="far fa-envelope"></i>
+                {{ admin_user.email|default:"No email set" }}
+            </div>
+            {% if profile.phone_number %}
+            <div class="email" style="margin-top: 0.5rem;">
+                <i class="fas fa-phone"></i>
+                {{ profile.phone_number }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Left Column -->
+        <div class="main-column">
+            <!-- Stats -->
+            <div class="stats-container">
+                <div class="data-card">
+                    <div class="value">{{ total_quizzes }}</div>
+                    <div class="label">Quizzes</div>
+                </div>
+                <div class="data-card">
+                    <div class="value">{{ total_attempts }}</div>
+                    <div class="label">Attempts</div>
+                </div>
+                <div class="data-card">
+                    <div class="value">{{ total_warnings }}</div>
+                    <div class="label">Warnings</div>
+                </div>
+            </div>
+
+            <!-- Edit Form -->
+            <div class="section-card">
+                <h3><i class="fas fa-user-edit"></i> Account Settings</h3>
+                <form method="POST" enctype="multipart/form-data" id="profileForm">
+                    {% csrf_token %}
+                    <input type="file" name="profile_image" id="imgInput" accept="image/*" style="display:none;"
+                        onchange="previewImage(this); document.getElementById('profileForm').submit();">
+                    
+                    <div class="form-section-title"><i class="fas fa-id-card"></i> Personal Information</div>
+                    
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="full_name" class="form-control" value="{{ admin_user.get_full_name|default:admin_user.username }}" placeholder="Update full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" class="form-control" value="{{ admin_user.email }}" placeholder="Update email address">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" name="phone_number" class="form-control" value="{{ profile.phone_number|default:'' }}" placeholder="Update phone number">
+                    </div>
+
+                    <div class="form-section-title"><i class="fas fa-chalkboard-teacher"></i> Teacher Profile</div>
+
+                    <div class="form-group">
+                        <label>Availability Status (Teacher Directory)</label>
+                        <select name="availability_status" class="form-control">
+                            <option value="Online" {% if teacher_profile.status == 'Online' %}selected{% endif %}>Online (Available)</option>
+                            <option value="In Class" {% if teacher_profile.status == 'In Class' %}selected{% endif %}>In Class (Busy)</option>
+                            <option value="Offline" {% if teacher_profile.status == 'Offline' or not teacher_profile %}selected{% endif %}>Offline (Away)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="designationGroup">
+                        <label>Designation</label>
+                        <select name="designation" class="form-control">
+                            <option value="System Administrator" {% if teacher_profile.designation == 'System Administrator' %}selected{% endif %}>System Administrator</option>
+                            <option value="Lecturer" {% if teacher_profile.designation == 'Lecturer' %}selected{% endif %}>Lecturer</option>
+                            <option value="Assistant Lecturer" {% if teacher_profile.designation == 'Assistant Lecturer' %}selected{% endif %}>Assistant Lecturer</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Username (Fixed)</label>
+                        <input type="text" class="form-control" value="{{ admin_user.username }}" disabled style="opacity: 0.6;">
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i> Sync & Update Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="side-column">
+            <!-- Quick Links -->
+            <div class="section-card">
+                <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                <div class="links-grid">
+                    <a href="{% url 'admin_dashboard' %}" class="link-item">
+                        <i class="fas fa-th-large"></i>
+                        <span>Admin Dashboard</span>
+                    </a>
+                    <a href="{% url 'create_quiz' %}" class="link-item">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Create New Quiz</span>
+                    </a>
+                    <a href="{% url 'student_list' %}" class="link-item">
+                        <i class="fas fa-users-cog"></i>
+                        <span>Manage Students</span>
+                    </a>
+                    <a href="{% url 'admin_logout' %}" class="link-item logout">
+                        <i class="fas fa-power-off"></i>
+                        <span>Log Out</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hint Card -->
+            <div class="section-card" style="background: #f8fafc; border: 1px dashed #cbd5e1;">
+                <p style="font-size: 0.85rem; color: #64748b; line-height: 1.5;">
+                    <i class="fas fa-info-circle" style="color: #3b82f6; margin-right: 4px;"></i>
+                    Updating your profile photo will automatically sync with your teacher directory card.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var img = document.getElementById('avatarImg');
+            var letter = document.getElementById('avatarLetter');
+            if (img) img.src = e.target.result;
+            if (letter) {
+                letter.outerHTML = '<img src="' + e.target.result + '" class="main-avatar-img" id="avatarImg">';
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}
+

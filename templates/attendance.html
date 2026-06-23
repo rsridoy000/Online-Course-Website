@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<style>
+    .attendance-container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .header-card {
+        background: #1e293b;
+        padding: 2.5rem;
+        border-radius: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    }
+    .header-card h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .header-card p { color: #94a3b8; font-size: 1.1rem; }
+
+    .control-panel {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .date-input {
+        padding: 0.75rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-weight: 600;
+        color: #1e293b;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .date-input:focus { border-color: #3b82f6; }
+
+    .attendance-table-card {
+        background: white;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+    .attendance-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .attendance-table th {
+        background: #f8fafc;
+        padding: 1.25rem 1.5rem;
+        text-align: left;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+    .attendance-table td {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .student-info { display: flex; align-items: center; gap: 1rem; }
+    .student-avatar {
+        width: 40px; height: 40px;
+        background: #3b82f6;
+        color: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    .status-toggle {
+        display: flex;
+        background: #f1f5f9;
+        padding: 4px;
+        border-radius: 12px;
+        width: fit-content;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+    .status-btn {
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        font-size: 0.9rem;
+        flex: 1;
+    }
+    .status-btn.present-active { background: #10b981; color: white; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); }
+    .status-btn.absent-active { background: #ef4444; color: white; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2); }
+    .status-btn.inactive { background: transparent; color: #64748b; }
+    .status-btn.inactive:hover { background: #e2e8f0; }
+
+    .save-bar {
+        position: fixed;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e293b;
+        padding: 0.5rem 1.25rem;
+        border-radius: 100px;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        z-index: 100;
+        transition: all 0.3s;
+    }
+    .save-btn {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 0.45rem 1.25rem;
+        border-radius: 50px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .save-btn:hover { background: #2563eb; transform: scale(1.05); }
+
+    @media (max-width: 768px) {
+        .attendance-container { padding: 0.75rem; }
+        .header-card { padding: 1.5rem 1rem; border-radius: 1.5rem; margin-bottom: 1rem; }
+        .header-card h1 { font-size: 1.5rem; }
+        
+        .control-panel { padding: 1rem; border-radius: 1rem; flex-direction: column; }
+        .attendance-table-card { background: transparent; shadow: none; box-shadow: none; }
+        
+        .attendance-table thead { display: none; }
+        .attendance-table tbody { display: flex; flex-direction: column; gap: 1rem; }
+        .attendance-table tr { 
+            background: white;
+            display: flex; 
+            flex-direction: column; 
+            padding: 1.25rem; 
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            gap: 1rem;
+            border: 1px solid #f1f5f9;
+        }
+        .attendance-table td { 
+            padding: 0 !important; 
+            border: none !important; 
+            width: 100% !important; 
+            display: block !important;
+        }
+        .student-info { gap: 1rem; }
+        .student-avatar { width: 48px; height: 48px; border-radius: 12px; }
+        
+        .status-toggle { width: 100%; }
+        .status-btn { flex: 1; padding: 10px; font-size: 0.95rem; }
+        
+        .save-bar { 
+            position: relative; 
+            bottom: 0; 
+            left: 0; 
+            transform: none; 
+            width: 100%; 
+            margin-top: 2rem;
+            background: #1e293b;
+            padding: 0.75rem 1.25rem;
+            border-radius: 1.25rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            box-sizing: border-box;
+        }
+        .save-bar div { color: #94a3b8; font-size: 0.9rem; }
+        .save-btn { padding: 0.75rem 1.5rem; font-size: 0.95rem; }
+        
+        .attendance-container { padding-bottom: 2rem; }
+    }
+</style>
+
+<div class="attendance-container">
+    <div class="header-card">
+        <div style="position: relative; z-index: 1;">
+            <h1><i class="fas fa-clipboard-check" style="color: #60a5fa;"></i> Student Attendance</h1>
+            <p>Track daily presence and automatically award performance points.</p>
+        </div>
+    </div>
+
+    <div class="control-panel">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <label style="font-weight: 800; color: #1e293b;">Select Date:</label>
+            <input type="text" id="attendanceDate" class="date-input flatpickr-date" value="{{ date|date:'Y-m-d' }}" placeholder="dd/mm/yyyy" onchange="changeDate(this.value)">
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <a href="{% url 'attendance_report' %}" class="btn-download" style="background: #f1f5f9; color: #3b82f6; border: 1px solid #e2e8f0; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-file-invoice"></i> View Reports
+            </a>
+        </div>
+    </div>
+
+    <form method="POST" action="{% url 'mark_attendance' %}" id="attendanceForm">
+        {% csrf_token %}
+        <input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">
+        
+        <div class="attendance-table-card">
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th style="text-align: right;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>
+                            <div class="student-info">
+                                <div class="student-avatar" style="{% if not student.profile_image %}background: {% cycle '#3b82f6' '#8b5cf6' '#ec4899' '#10b981' '#f59e0b' %};{% endif %} overflow: hidden;">
+                                    {% if student.profile_image %}
+                                        <img src="{{ student.profile_image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        {{ student.get_avatar_letter }}
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 800; color: #1e293b; font-size: 1.15rem; letter-spacing: -0.5px; margin-bottom: 2px;">{{ student.user.get_full_name }}</div>
+                                    <div style="display: inline-flex; align-items: center; gap: 4px; background: #eff6ff; color: #3b82f6; padding: 2px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; border: 1px solid #dbeafe;">
+                                        <i class="fas fa-fingerprint" style="font-size: 0.7rem;"></i>
+                                        ID: #{{ student.student_id|default:"---" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="text-align: right;">
+                            <div class="status-toggle" style="margin-left: auto;">
+                                <input type="hidden" name="status_{{ student.id }}" id="status_input_{{ student.id }}" value="{% if attendance_map|get_item:student.id %}{{ attendance_map|get_item:student.id }}{% else %}Absent{% endif %}">
+                                <button type="button" 
+                                    class="status-btn {% if attendance_map|get_item:student.id == 'Present' %}present-active{% else %}inactive{% endif %}"
+                                    onclick="setStatus({{ student.id }}, 'Present', this)">
+                                    Present
+                                </button>
+                                <button type="button" 
+                                    class="status-btn {% if attendance_map|get_item:student.id == 'Absent' or not attendance_map|get_item:student.id %}absent-active{% else %}inactive{% endif %}"
+                                    onclick="setStatus({{ student.id }}, 'Absent', this)">
+                                    Absent
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="save-bar">
+            <div style="color: #94a3b8; font-weight: 600; font-size: 0.9rem;">
+                <span id="presentCount">0</span> Present | <span id="absentCount">0</span> Absent
+            </div>
+            <button type="submit" class="save-btn">Save Attendance</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function setStatus(studentId, status, btn) {
+        const input = document.getElementById('status_input_' + studentId);
+        input.value = status;
+        
+        // Update button visual state
+        const container = btn.parentElement;
+        const buttons = container.querySelectorAll('.status-btn');
+        buttons.forEach(b => {
+            b.classList.remove('present-active', 'absent-active');
+            b.classList.add('inactive');
+        });
+        
+        if (status === 'Present') {
+            btn.classList.remove('inactive');
+            btn.classList.add('present-active');
+        } else {
+            btn.classList.remove('inactive');
+            btn.classList.add('absent-active');
+        }
+        
+        updateCounts();
+    }
+
+    function updateCounts() {
+        const inputs = document.querySelectorAll('input[name^="status_"]');
+        let present = 0;
+        let absent = 0;
+        inputs.forEach(i => {
+            if (i.value === 'Present') present++;
+            else absent++;
+        });
+        document.getElementById('presentCount').innerText = present;
+        document.getElementById('absentCount').innerText = absent;
+    }
+
+    function changeDate(date) {
+        window.location.href = "{% url 'attendance_dashboard' %}?date=" + date;
+    }
+
+    // Initial count
+    window.onload = updateCounts;
+</script>
+{% endblock %}

@@ -1,0 +1,1023 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Resources | Liquid_Triple_R{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<style>
+    .resources-container {
+        animation: fadeIn 0.8s ease-out;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .resources-hero {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        padding: 3rem 2.5rem;
+        border-radius: 2rem;
+        margin-bottom: 2.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+        overflow-x: auto;
+        padding: 4px;
+        padding-bottom: 0.75rem;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .filter-tabs::-webkit-scrollbar { display: none; }
+
+    .filter-tab {
+        padding: 0.7rem 1.4rem;
+        border-radius: 14px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: white;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        outline: none;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .filter-tab i {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    .filter-tab:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+        background: #eff6ff;
+        transform: translateY(-1px);
+    }
+
+    .filter-tab.active {
+        background: #3b82f6;
+        color: white !important;
+        border-color: #3b82f6;
+        box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+    }
+
+    .filter-tab.active i {
+        opacity: 1;
+    }
+
+    /* Accordion Styles */
+    .session-folder {
+        background: white;
+        border-radius: 1.5rem;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 1.25rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+
+    .session-folder.open {
+        border-color: #3b82f6;
+        box-shadow: 0 12px 20px -5px rgba(59, 130, 246, 0.08);
+    }
+
+    .folder-header {
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+    }
+
+    .folder-header:hover { background: #f8fafc; }
+
+    .folder-info {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .folder-icon {
+        width: 48px;
+        height: 48px;
+        background: #eff6ff;
+        color: #3b82f6;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        transition: all 0.3s;
+        flex-shrink: 0;
+    }
+
+    .session-folder.open .folder-icon {
+        background: #3b82f6;
+        color: white;
+        transform: rotate(-5deg) scale(1.05);
+    }
+
+    .folder-text h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #1e293b;
+        line-height: 1.2;
+    }
+
+    .folder-text p {
+        margin: 4px 0 0;
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 600;
+    }
+
+    .folder-arrow {
+        width: 32px;
+        height: 32px;
+        background: #f1f5f9;
+        color: #64748b;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .session-folder.open .folder-arrow {
+        background: #3b82f6;
+        color: white;
+        transform: rotate(180deg);
+    }
+
+    .folder-content {
+        display: none;
+        padding: 0 1.5rem 2rem;
+        background: #fcfdfe;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .session-folder.open .folder-content { display: block; }
+    
+    /* Hide delete button when folder is closed */
+    .session-folder:not(.open) .delete-session-btn {
+        display: none !important;
+    }
+
+    .resource-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 0.85rem;
+        padding-top: 1rem;
+        width: 100%;
+    }
+
+    .btn-bulk-download {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.25rem;
+        background: #f1f5f9;
+        color: #475569;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid #e2e8f0;
+        margin: 1.5rem 0 0;
+    }
+    .btn-bulk-download:hover {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+    }
+
+    /* Resource Card Styles */
+    .resource-card {
+        background: white;
+        border-radius: 1.25rem;
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .resource-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        border-color: #3b82f6;
+    }
+
+    .card-thumb {
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.25rem;
+        background: #f8fafc;
+        position: relative;
+    }
+
+    .thumb-video { background: #eff6ff; color: #3b82f6; }
+    .thumb-pdf { background: #fef2f2; color: #ef4444; }
+    .thumb-code { background: #f0fdf4; color: #10b981; }
+
+    .card-body {
+        padding: 0.85rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-tag {
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .btn-action {
+        width: 100%;
+        padding: 0.6rem 0.75rem;
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        margin-top: auto;
+        transition: all 0.2s;
+        border: none;
+        line-height: 1;
+    }
+    .btn-action i {
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        top: 1px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+        .resources-hero { padding: 2rem 1.5rem; text-align: center; }
+        .resources-hero h1 { font-size: 1.75rem !important; }
+        .resources-hero p { font-size: 0.9rem; }
+        .folder-header { padding: 1rem; }
+        .folder-icon { width: 40px; height: 40px; font-size: 1.1rem; }
+        .folder-text h3 { font-size: 0.95rem; }
+        .folder-text p { font-size: 0.7rem; }
+        .resource-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        .filter-tabs { gap: 0.5rem; }
+        .filter-tab { padding: 0.5rem 1rem; font-size: 0.8rem; }
+        .btn-bulk-download { width: 100%; justify-content: center; padding: 0.5rem; font-size: 0.8rem; }
+    }
+</style>
+
+<div class="resources-container">
+    <!-- Hero Section -->
+    <div class="resources-hero">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="width: 44px; height: 44px; background: #3b82f6; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">
+                    <i class="fas fa-play" style="font-size: 1.1rem; margin-left: 3px;"></i>
+                </div>
+                <div>
+                    <h1 style="margin: 0; font-size: 2rem; font-weight: 800;">Resources</h1>
+                    <p style="color: #94a3b8; font-size: 1rem; margin: 0;">Access your class recordings and materials.</p>
+                </div>
+            </div>
+            
+            {% if user.is_staff %}
+            <button onclick="openAddModal()" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.8rem 1.5rem; border-radius: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; transition: all 0.3s; font-family: 'Outfit', sans-serif;" onmouseover="this.style.background='white'; this.style.color='#1e293b'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'; this.style.transform='none';">
+                <div style="width: 28px; height: 28px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <span>Add Resource</span>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterResources('all', this)"><i class="fas fa-th-large"></i> All Items</button>
+        <button class="filter-tab" onclick="filterResources('recording', this)"><i class="fas fa-video"></i> Class Recordings</button>
+        <button class="filter-tab" onclick="filterResources('code', this)"><i class="fas fa-code"></i> Source Code</button>
+    </div>
+
+    <!-- Folders List -->
+    <div id="resourceGrid">
+        {% for date, resources in grouped_resources.items %}
+        <div class="session-folder" data-date="{{ date|date:"Y-m-d" }}">
+            <div class="folder-header" onclick="toggleFolder(this)">
+                <div class="folder-info">
+                    <div class="folder-icon">
+                        <i class="fas fa-folder"></i>
+                    </div>
+                    <div class="folder-text">
+                        <h3 style="display: flex; align-items: center; gap: 10px;">
+                            {% with oldest_resource=resources|last %}
+                                {% if oldest_resource.category == 'recording' %}
+                                    {{ oldest_resource.title }}
+                                {% else %}
+                                    Session: {{ date|date:"d M, Y" }}
+                                {% endif %}
+                            {% endwith %}
+                        </h3>
+                        <p><i class="far fa-calendar-alt"></i> {{ date|date:"d F, Y" }} &bull; {{ resources|length }} Items</p>
+                    </div>
+                </div>
+                <div class="folder-arrow">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+
+            <div class="folder-content" style="padding: 0.75rem 1.5rem 1.5rem;">
+                <div style="display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem;">
+                    {% if user.is_staff %}
+                    <button class="btn-bulk-download" onclick="openAddModal('{{ date|date:"Y-m-d" }}', this.closest('.session-folder').querySelector('.folder-text h3').innerText.trim())" style="background: #eff6ff; color: #3b82f6; border-color: #dbeafe; padding: 0.45rem 1rem; font-size: 0.85rem; width: 100%; justify-content: center;">
+                        <i class="fas fa-plus-circle"></i> Add Material
+                    </button>
+                    {% endif %}
+                    <button class="btn-bulk-download" onclick="downloadAllFiles(this)" style="padding: 0.45rem 1rem; font-size: 0.85rem; width: 100%; justify-content: center;">
+                        <i class="fas fa-download"></i> Download All
+                    </button>
+                </div>
+                <div class="resource-grid">
+                    {% for resource in resources %}
+                    <div class="resource-card" data-category="{{ resource.category }}"
+                         {% if resource.file and ".png" in resource.file.url|lower or ".jpg" in resource.file.url|lower or ".jpeg" in resource.file.url|lower %}
+                         style="cursor: pointer;" onclick="openImageViewer('{{ resource.file.url }}', '{{ resource.title|escapejs }}')"
+                         {% endif %}>
+                        <div class="card-thumb {% if 'video' in resource.category or 'recording' in resource.category %}thumb-video{% elif 'pdf' in resource.category %}thumb-pdf{% elif 'code' in resource.category %}thumb-code{% endif %}"
+                             {% if resource.file and ".png" in resource.file.url|lower or ".jpg" in resource.file.url|lower or ".jpeg" in resource.file.url|lower %}
+                             style="background: url('{{ resource.file.url }}'); background-size: cover; background-position: center; border-radius: 12px;"
+                             {% endif %}>
+                            {% if resource.file and ".png" in resource.file.url|lower or ".jpg" in resource.file.url|lower or ".jpeg" in resource.file.url|lower %}
+                                <!-- Image thumb, no icon needed -->
+                            {% elif 'video' in resource.category or 'recording' in resource.category %}
+                                <i class="fas fa-play-circle"></i>
+                            {% elif 'code' in resource.category %}
+                                <i class="fas fa-file-code"></i>
+                            {% else %}
+                                <i class="fas fa-file-alt"></i>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <span class="card-tag {% if 'video' in resource.category or 'recording' in resource.category %}thumb-video{% elif 'code' in resource.category %}thumb-code{% endif %}" style="background: rgba(0,0,0,0.05); margin: 0;">
+                                    {{ resource.get_category_display }}
+                                </span>
+                                {% if user.is_staff %}
+                                <button onclick="event.stopPropagation(); showDeleteModal('{% url 'delete_resource' resource.id %}', '{{ resource.title|escapejs }}', this)" style="background: #fee2e2; color: #ef4444; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-trash-alt" style="font-size: 0.8rem;"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            <h4 style="margin: 0 0 0.5rem; font-size: 1rem; font-weight: 700; color: #1e293b; line-height: 1.4;">{{ resource.display_title }}</h4>
+                            <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 1.25rem;">{{ resource.description|truncatewords:10 }}</p>
+                            
+                            {% if 'video' in resource.category or 'recording' in resource.category %}
+                                {% if resource.video_url %}
+                                    <a href="{{ resource.video_url }}" target="_blank" class="btn-action" style="background: #3b82f6; color: white;"><i class="fas fa-external-link-alt"></i> <span>Watch Recording</span></a>
+                                {% elif resource.file %}
+                                    <button class="btn-action" style="background: #3b82f6; color: white;" onclick="openVideoPlayer('{{ resource.file.url }}', '{{ resource.title }}')"><i class="fas fa-play"></i> <span>Watch Now</span></button>
+                                {% endif %}
+                            {% elif resource.file %}
+                                <a href="{{ resource.file.url }}" class="dl-link btn-action" style="background: #3b82f6; color: white; text-decoration: none;" download>
+                                    <i class="fas fa-download"></i> <span>Download</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div style="text-align: center; padding: 4rem 2rem; background: white; border-radius: 2rem; border: 1px solid #e2e8f0;">
+            <div style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem; color: #94a3b8;">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <h3 style="margin: 0 0 0.5rem; color: #1e293b;">No Resources Found</h3>
+            <p style="color: #64748b; margin: 0;">Try changing the filter or check back later.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modals -->
+{% if user.is_staff %}
+<div id="addModal" class="video-modal" style="display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);">
+    <div class="modal-content" style="max-width: 550px; background: white; padding: 2rem; border-radius: 24px; position: relative; margin: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #1e293b;">Add New Resource</h2>
+            <button onclick="closeAddModal()" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: #64748b;"><i class="fas fa-times"></i></button>
+        </div>
+        <form action="{% url 'add_resource' %}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 1.25rem;">
+            {% csrf_token %}
+            <div id="titleFieldContainer">
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem;">Resource Title</label>
+                <input type="text" name="title" required placeholder="e.g. Introduction to Python" style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 0.95rem; outline: none; box-sizing: border-box;">
+            </div>
+            <div id="dateFieldContainer">
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem;">Resource Date</label>
+                <div class="date-input-wrapper">
+                    <i class="fas fa-calendar-alt" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #3b82f6;"></i>
+                    <input type="text" name="resource_date" class="flatpickr-date" placeholder="Select Date" value="{{ today|date:'Y-m-d' }}" style="width: 100%; padding: 0.8rem 1rem 0.8rem 2.75rem; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 0.95rem; outline: none; box-sizing: border-box;">
+                </div>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem;">Category</label>
+                <select name="category" required style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 0.95rem; outline: none; background: white; box-sizing: border-box; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 0.65rem auto;">
+                    <option value="recording">Class Recording</option>
+                    <option value="code">Source Code (HTML/CSS/JS/MD/ZIP)</option>
+                </select>
+            </div>
+            <div id="uploadArea" onclick="document.getElementById('fileInput').click()" style="width: 100%; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 1.25rem; text-align: center; cursor: pointer; transition: all 0.3s; background: #f8fafc; box-sizing: border-box;" onmouseover="this.style.borderColor='#3b82f6'; this.style.background='#eff6ff';" onmouseout="this.style.borderColor='#cbd5e1'; this.style.background='#f8fafc';">
+                <div style="font-size: 1.5rem; color: #3b82f6; margin-bottom: 0.5rem;"><i class="fas fa-cloud-upload-alt"></i></div>
+                <div style="font-weight: 700; color: #1e293b; font-size: 0.9rem;">Click or Drop files here</div>
+                <input type="file" id="fileInput" name="files" multiple accept=".html,.css,.js,.php,.py,.zip,.rar,.txt,.pdf,.docx,.md" style="display: none;" onchange="updateFileList(this.files)">
+                <div id="fileListContainer" style="margin-top: 1rem; text-align: left; max-height: 120px; overflow-y: auto; padding: 0.5rem; background: white; border-radius: 8px; border: 1px solid #f1f5f9; display: none;">
+                    <div style="font-size: 0.75rem; color: #64748b; font-weight: 700; margin-bottom: 0.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.25rem;">SELECTED FILES:</div>
+                    <ul id="selectedFilesList" style="list-style: none; padding: 0; margin: 0; font-size: 0.8rem; color: #475569;"></ul>
+                </div>
+                <div id="fileStatus" style="font-size: 0.8rem; color: #3b82f6; font-weight: 700; margin-top: 0.5rem;">No files selected</div>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem;">Video URL (Optional)</label>
+                <input type="url" name="video_url" placeholder="YouTube URL" style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 0.95rem; outline: none; box-sizing: border-box;">
+            </div>
+            <button type="submit" style="margin-top: 1rem; padding: 1rem; background: #3b82f6; color: white; border: none; border-radius: 14px; font-weight: 800; cursor: pointer;">Upload Resource</button>
+        </form>
+    </div>
+</div>
+
+<div id="deleteModal" class="video-modal" style="display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 999999;">
+    <div style="background: white; width: 90%; max-width: 380px; border-radius: 24px; padding: 2rem; text-align: center; margin: auto;">
+        <h3 style="margin: 0 0 1rem; font-weight: 800;">Delete Resource?</h3>
+        <p id="deleteModalMsg" style="margin: 0 0 2rem; color: #64748b; font-size: 0.9rem;">Are you sure?</p>
+        <div style="display: flex; gap: 0.75rem;">
+            <button onclick="closeDeleteModal()" style="flex: 1; padding: 0.8rem; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer;">Cancel</button>
+            <button id="confirmDeleteBtn" onclick="confirmDeleteResource()" style="flex: 1; padding: 0.8rem; background: #ef4444; color: white; border-radius: 12px; font-weight: 800; border: none; cursor: pointer;">Delete</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div id="videoModal" class="video-modal" style="display: none; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px);">
+    <div style="width: 95%; max-width: 1000px; margin: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0;">
+            <h3 id="modalTitle" style="color: white; margin: 0;"></h3>
+            <button onclick="closeVideoPlayer()" style="background: rgba(255,255,255,0.1); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; cursor: pointer;"><i class="fas fa-times"></i></button>
+        </div>
+        <video id="player" controls style="width: 100%; border-radius: 12px;">
+            <source src="" type="video/mp4">
+        </video>
+    </div>
+</div>
+
+<!-- Download All Confirmation Modal -->
+<div id="downloadModal" class="video-modal" style="display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 99999;">
+    <div style="background: white; width: 90%; max-width: 400px; border-radius: 28px; padding: 2.5rem 2rem; text-align: center; margin: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.25); animation: popCenter 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        <div style="width: 70px; height: 70px; background: #eff6ff; color: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem; box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.05);">
+            <i class="fas fa-file-download"></i>
+        </div>
+        <h3 style="margin: 0 0 0.75rem; font-size: 1.4rem; font-weight: 800; color: #1e293b; letter-spacing: -0.5px;">Download Materials?</h3>
+        <p id="downloadModalMsg" style="margin: 0 0 2.25rem; color: #64748b; font-size: 0.95rem; line-height: 1.6;">Are you sure you want to download all study materials from this session?</p>
+        <div style="display: flex; gap: 0.75rem;">
+            <button onclick="closeDownloadModal()" style="flex: 1; padding: 0.9rem; border: 1.5px solid #e2e8f0; background: white; color: #475569; border-radius: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 0.95rem;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='white'">Cancel</button>
+            <button id="confirmDownloadBtn" style="flex: 1.5; padding: 0.9rem; background: #3b82f6; color: white; border-radius: 14px; font-weight: 800; cursor: pointer; transition: all 0.2s; border: none; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25); font-size: 0.95rem;" onmouseover="this.style.background='#2563eb'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='#3b82f6'; this.style.transform='none';">Yes, Download</button>
+        </div>
+    </div>
+</div>
+
+<!-- Image Viewer Modal -->
+<div id="imageViewerModal" class="video-modal" style="display: none; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); z-index: 999999;">
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 10;">
+        <button onclick="closeImageViewer()" style="background: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; color: #1e293b; font-size: 1.2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3);"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="width: 95%; max-width: 1200px; height: 85vh; margin: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+        <img id="fullImage" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+        <h3 id="imageTitle" style="color: white; margin-top: 1.5rem; font-weight: 600; text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.5);"></h3>
+        <a id="imageDownloadBtn" href="" download style="margin-top: 1rem; color: rgba(255,255,255,0.7); font-size: 0.9rem; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 2px;"><i class="fas fa-download"></i> Download Original</a>
+    </div>
+</div>
+
+<!-- Delete Session Confirmation Modal -->
+<div id="deleteSessionModal" class="video-modal" style="display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 999999;">
+    <div style="background: white; width: 90%; max-width: 400px; border-radius: 28px; padding: 2.5rem 2rem; text-align: center; margin: auto;">
+        <div style="width: 70px; height: 70px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem;">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 style="margin: 0 0 0.75rem; font-size: 1.4rem; font-weight: 800; color: #1e293b;">Delete Entire Session?</h3>
+        <p style="margin: 0 0 2rem; color: #64748b; font-size: 0.95rem; line-height: 1.6;">Are you sure you want to delete ALL materials for this session? This action cannot be undone.</p>
+        <form id="deleteSessionForm" onsubmit="confirmDeleteSession(event)" style="display: flex; gap: 0.75rem;">
+            {% csrf_token %}
+            <input type="hidden" name="date" id="deleteSessionDate">
+            <button type="button" onclick="closeDeleteSessionModal()" style="flex: 1; padding: 0.9rem; border: 1.5px solid #e2e8f0; background: white; color: #475569; border-radius: 14px; font-weight: 700; cursor: pointer;">Cancel</button>
+            <button type="submit" id="deleteSessionSubmitBtn" style="flex: 1.5; padding: 0.9rem; background: #ef4444; color: white; border-radius: 14px; font-weight: 800; cursor: pointer; border: none; box-shadow: 0 8px 20px rgba(239, 68, 68, 0.25);">Yes, Delete All</button>
+        </form>
+    </div>
+</div>
+
+<!-- PDF Viewer Modal -->
+<div id="pdfModal" class="video-modal" style="display: none; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); z-index: 999999;">
+    <div class="modal-content" style="max-width: 95%; width: 1000px; height: 90vh; background: white; padding: 0; border-radius: 24px; overflow: hidden; position: relative; display: flex; flex-direction: column; margin: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.3);">
+        <div style="padding: 1.25rem 2rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="pdfModalTitle" style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">PDF Viewer</h3>
+            <div style="display: flex; gap: 0.75rem;">
+                <a id="pdfDownloadBtn" href="#" download class="btn-action" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #3b82f6; color: white; border: none; border-radius: 8px; text-decoration: none; display: flex; align-items: center; gap: 5px;"><i class="fas fa-download"></i> Download</a>
+                <button onclick="closePDFViewer()" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: #64748b;"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div id="pdfViewerContainer" style="flex: 1; background: #525659; overflow: hidden; display: flex; flex-direction: column; align-items: center; position: relative;">
+            <div id="pdfLoader" style="position: absolute; top: 50%; transform: translateY(-50%); color: white; display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 5;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i>
+                <span>Opening Viewer...</span>
+            </div>
+            <iframe id="pdfFrame" src="" style="width: 100%; height: 100%; border: none; position: relative; z-index: 10;" onload="document.getElementById('pdfLoader').style.display='none'"></iframe>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script>
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+</script>
+
+<!-- Delete Session Confirmation Modal -->
+
+
+<script>
+    function toggleFolder(header) {
+        const folder = header.closest('.session-folder');
+        const isOpen = folder.classList.contains('open');
+        
+        // Auto-collapse: Close other folders
+        if (!isOpen) {
+            document.querySelectorAll('.session-folder.open').forEach(f => {
+                f.classList.remove('open');
+                const otherIcon = f.querySelector('.chevron-icon i');
+                if (otherIcon) {
+                    otherIcon.classList.remove('fa-chevron-up');
+                    otherIcon.classList.add('fa-chevron-down');
+                }
+            });
+        }
+
+        folder.classList.toggle('open');
+        const icon = header.querySelector('.chevron-icon i');
+        if (folder.classList.contains('open')) {
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        } else {
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
+    }
+
+    async function downloadAllFiles(btn) {
+        const folder = btn.closest('.session-folder');
+        const sessionTitle = folder.querySelector('.folder-text h3').innerText.trim().replace(/[/\\?%*:|"<>]/g, '-');
+        
+        // Find all links with .dl-link within this folder
+        // These are our study materials (Code, Images, Docs)
+        currentLinks = Array.from(folder.querySelectorAll('.dl-link'));
+        
+        const modal = document.getElementById('downloadModal');
+        const msg = document.getElementById('downloadModalMsg');
+        const confirmBtn = document.getElementById('confirmDownloadBtn');
+        const cancelBtn = modal.querySelector('button[onclick="closeDownloadModal()"]');
+
+        if (currentLinks.length === 0) {
+            msg.innerHTML = `<i class="fas fa-info-circle" style="color: #64748b; font-size: 2rem; display: block; margin-bottom: 1rem;"></i> No study materials (Code/Images/Docs) found in this session.`;
+            confirmBtn.style.display = 'none';
+            cancelBtn.innerText = 'OK';
+            cancelBtn.style.flex = '1';
+            modal.style.display = 'flex';
+            return;
+        }
+
+        confirmBtn.style.display = 'block';
+        cancelBtn.innerText = 'Cancel';
+        cancelBtn.style.flex = '1';
+        msg.innerHTML = `You are about to download <b>${currentLinks.length}</b> material(s).<br><span style="font-size: 0.8rem; color: #94a3b8;">Recordings are not included in study material ZIPs.</span>`;
+        
+        confirmBtn.onclick = async function() {
+            closeDownloadModal();
+            
+            if (currentLinks.length === 1) {
+                const a = document.createElement('a');
+                a.href = currentLinks[0].href;
+                a.download = '';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } else {
+                const zip = new JSZip();
+                const btnOriginalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Zipping...';
+                btn.style.opacity = '0.7';
+                btn.disabled = true;
+
+                try {
+                    for (const link of currentLinks) {
+                        const response = await fetch(link.href);
+                        if (!response.ok) continue;
+                        const blob = await response.blob();
+                        // Try to get filename from URL or title
+                        let filename = link.href.split('/').pop().split('?')[0];
+                        if (!filename || filename.length < 3) {
+                            const card = link.closest('.resource-card');
+                            const title = card.querySelector('h4').innerText.trim().replace(/[/\\?%*:|"<>]/g, '_');
+                            filename = `${title}_file`;
+                        }
+                        zip.file(filename, blob);
+                    }
+
+                    const content = await zip.generateAsync({type: "blob"});
+                    const zipUrl = URL.createObjectURL(content);
+                    const a = document.createElement('a');
+                    a.href = zipUrl;
+                    a.download = `${sessionTitle}_Materials.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(zipUrl);
+                } catch (err) {
+                    console.error(err);
+                    alert('Error creating zip file. Files will be downloaded individually.');
+                    currentLinks.forEach((link, index) => {
+                        setTimeout(() => {
+                            const a = document.createElement('a');
+                            a.href = link.href;
+                            a.download = '';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        }, index * 800);
+                    });
+                } finally {
+                    btn.innerHTML = btnOriginalText;
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                }
+            }
+        };
+
+        modal.style.display = 'flex';
+    }
+
+    function closeDownloadModal() {
+        document.getElementById('downloadModal').style.display = 'none';
+    }
+
+    function filterResources(category, btn) {
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        const folders = document.querySelectorAll('.session-folder');
+        folders.forEach(folder => {
+            let visible = 0;
+            const cards = folder.querySelectorAll('.resource-card');
+            cards.forEach(card => {
+                const cat = card.getAttribute('data-category');
+                const show = (category === 'all' || cat === category);
+                card.style.display = show ? 'flex' : 'none';
+                if (show) visible++;
+            });
+            folder.style.display = visible > 0 ? 'block' : 'none';
+        });
+    }
+
+    function openVideoPlayer(url, title) {
+        const modal = document.getElementById('videoModal');
+        const player = document.getElementById('player');
+        player.src = url;
+        document.getElementById('modalTitle').innerText = title;
+        modal.style.display = 'flex';
+        player.play();
+    }
+
+    function closeVideoPlayer() {
+        const modal = document.getElementById('videoModal');
+        const player = document.getElementById('player');
+        player.pause();
+        modal.style.display = 'none';
+        player.src = '';
+    }
+
+    function openPDFViewer(url, title) {
+        const modal = document.getElementById('pdfModal');
+        const frame = document.getElementById('pdfFrame');
+        const loader = document.getElementById('pdfLoader');
+        
+        loader.style.display = 'flex';
+        frame.src = url;
+        document.getElementById('pdfModalTitle').innerText = title;
+        document.getElementById('pdfDownloadBtn').href = url;
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closePDFViewer() {
+        document.getElementById('pdfModal').style.display = 'none';
+        document.getElementById('pdfFrame').src = '';
+        document.body.style.overflow = '';
+    }
+
+    function closeAllModals() {
+        closeVideoPlayer(); closeAddModal(); closeDeleteModal(); closeDownloadModal(); closeImageViewer(); closeDeleteSessionModal(); closePDFViewer();
+    }
+
+    function openAddModal(date = null, title = null) {
+        closeAllModals();
+        const dateContainer = document.getElementById('dateFieldContainer');
+        const titleContainer = document.getElementById('titleFieldContainer');
+        const dateInput = document.querySelector('input[name="resource_date"]');
+        const titleInput = document.querySelector('input[name="title"]');
+
+        if (date) {
+            // Context provided: hide fields and set values
+            if (dateContainer) dateContainer.style.display = 'none';
+            if (dateInput) dateInput.value = date;
+            
+            if (titleContainer) titleContainer.style.display = 'none';
+            if (titleInput) titleInput.value = title || '';
+        } else {
+            // No context: show all fields for new session
+            if (dateContainer) dateContainer.style.display = 'block';
+            if (titleContainer) titleContainer.style.display = 'block';
+            if (titleInput) titleInput.value = '';
+        }
+
+        document.getElementById('addModal').style.display = 'flex';
+    }
+
+    function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
+    
+    let resourceToDelete = null;
+    let cardToRemove = null;
+    function showDeleteModal(url, title, btn) {
+        closeAllModals();
+        resourceToDelete = url;
+        cardToRemove = btn.closest('.resource-card');
+        document.getElementById('deleteModalMsg').innerText = `Delete "${title}"?`;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+    function closeDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; }
+
+    async function confirmDeleteResource() {
+        if (!resourceToDelete) return;
+        const btn = document.getElementById('confirmDeleteBtn');
+        const originalText = btn.innerText;
+        btn.innerText = 'Deleting...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(resourceToDelete, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                if (cardToRemove) {
+                    const folder = cardToRemove.closest('.session-folder');
+                    cardToRemove.remove();
+                    // Check if folder is now empty
+                    if (folder && folder.querySelectorAll('.resource-card').length === 0) {
+                        folder.remove();
+                    }
+                }
+                closeDeleteModal();
+            } else {
+                alert(data.error || 'Error deleting resource');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Connection error');
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+    
+
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('add')) {
+            openAddModal();
+        }
+
+        // Drag and Drop Logic
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileStatus = document.getElementById('fileStatus');
+
+        if (uploadArea) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.style.borderColor = '#3b82f6';
+                    uploadArea.style.background = '#eff6ff';
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.style.borderColor = '#cbd5e1';
+                    uploadArea.style.background = '#f8fafc';
+                }, false);
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                fileInput.files = files;
+                updateFileList(files);
+            }, false);
+        }
+    });
+
+    function updateFileList(files) {
+        const list = document.getElementById('selectedFilesList');
+        const container = document.getElementById('fileListContainer');
+        const status = document.getElementById('fileStatus');
+        
+        list.innerHTML = '';
+        if (files.length > 0) {
+            container.style.display = 'block';
+            status.innerText = files.length + ' file(s) ready to upload';
+            status.style.fontSize = '0.75rem';
+            
+            Array.from(files).forEach(file => {
+                const li = document.createElement('li');
+                li.style.display = 'flex';
+                li.style.alignItems = 'center';
+                li.style.gap = '10px';
+                li.style.marginBottom = '6px';
+                li.style.padding = '6px';
+                li.style.background = '#f8fafc';
+                li.style.borderRadius = '8px';
+                li.style.border = '1px solid #edf2f7';
+
+                const previewWrapper = document.createElement('div');
+                previewWrapper.style.width = '32px';
+                previewWrapper.style.height = '32px';
+                previewWrapper.style.display = 'flex';
+                previewWrapper.style.alignItems = 'center';
+                previewWrapper.style.justifyContent = 'center';
+                previewWrapper.style.flexShrink = '0';
+
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '4px';
+                    const reader = new FileReader();
+                    reader.onload = (e) => { img.src = e.target.result; };
+                    reader.readAsDataURL(file);
+                    previewWrapper.appendChild(img);
+                } else {
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-file-alt';
+                    icon.style.color = '#64748b';
+                    icon.style.fontSize = '1.1rem';
+                    previewWrapper.appendChild(icon);
+                }
+
+                const nameSpan = document.createElement('span');
+                nameSpan.style.whiteSpace = 'nowrap';
+                nameSpan.style.overflow = 'hidden';
+                nameSpan.style.textOverflow = 'ellipsis';
+                nameSpan.style.fontSize = '0.8rem';
+                nameSpan.style.color = '#334155';
+                nameSpan.style.fontWeight = '600';
+                nameSpan.innerText = file.name;
+
+                li.appendChild(previewWrapper);
+                li.appendChild(nameSpan);
+                list.appendChild(li);
+            });
+        } else {
+            container.style.display = 'none';
+            status.innerText = 'No files selected';
+        }
+    }
+
+    function openImageViewer(url, title) {
+        document.getElementById('fullImage').src = url;
+        document.getElementById('imageTitle').innerText = title;
+        document.getElementById('imageDownloadBtn').href = url;
+        document.getElementById('imageViewerModal').style.display = 'flex';
+    }
+
+    function closeImageViewer() {
+        document.getElementById('imageViewerModal').style.display = 'none';
+        document.getElementById('fullImage').src = '';
+    }
+
+
+
+    async function confirmDeleteSession(e) {
+        e.preventDefault();
+        const form = e.target;
+        const btn = document.getElementById('deleteSessionSubmitBtn');
+        const originalText = btn.innerText;
+        btn.innerText = 'Deleting All...';
+        btn.disabled = true;
+
+        const formData = new FormData(form);
+        const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        try {
+            const response = await fetch("{% url 'delete_session' %}", {
+                method: 'POST',
+                body: formData,
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                const date = document.getElementById('deleteSessionDate').value;
+                const folder = document.querySelector(`.session-folder[data-date="${date}"]`);
+                if (folder) {
+                    folder.style.opacity = '0';
+                    folder.style.transform = 'scale(0.95)';
+                    folder.style.transition = 'all 0.3s ease';
+                    setTimeout(() => {
+                        folder.remove();
+                        // If no folders left, show empty state
+                        if (document.querySelectorAll('.session-folder').length === 0) {
+                            location.reload(); // Easier to show empty state via reload
+                        }
+                    }, 300);
+                }
+                closeDeleteSessionModal();
+            } else {
+                alert(data.error || 'Error deleting session');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Connection error');
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    function showDeleteSessionModal(date) {
+        closeAllModals();
+        document.getElementById('deleteSessionDate').value = date;
+        document.getElementById('deleteSessionModal').style.display = 'flex';
+    }
+
+    function closeDeleteSessionModal() {
+        document.getElementById('deleteSessionModal').style.display = 'none';
+    }
+
+    window.onclick = function(e) {
+        if (e.target.classList.contains('video-modal')) {
+            closeAllModals();
+        }
+    }
+</script>
+{% endblock %}

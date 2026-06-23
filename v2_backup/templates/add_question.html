@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Add Question - Liquid_Triple_R{% endblock %}
+
+{% block content %}
+<div class="container admin-container">
+    <div class="admin-header">
+        <h1>➕ Add New Question</h1>
+        <p>Quiz: <strong>{{ quiz.title }}</strong></p>
+    </div>
+
+    <div class="form-container">
+        <form method="post" class="admin-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="question_text">Question Text *</label>
+                <textarea 
+                    id="question_text" 
+                    name="question_text" 
+                    placeholder="Enter the question"
+                    rows="3"
+                    required
+                    class="form-input"
+                ></textarea>
+            </div>
+
+            <div class="options-section">
+                <h3>Answer Options</h3>
+                <p class="hint">Select which option is correct</p>
+
+                {% for i in "1234" %}
+                    <div class="option-input-group">
+                        <div class="option-number">Option {{ i }}</div>
+                        <input 
+                            type="text" 
+                            name="option_{{ i }}" 
+                            placeholder="Enter option text"
+                            required
+                            class="form-input"
+                        >
+                        <label class="option-radio">
+                            <input 
+                                type="radio" 
+                                name="correct_option" 
+                                value="{{ i }}"
+                                {% if i == '1' %}checked{% endif %}
+                                required
+                            >
+                            <span>Correct Answer</span>
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    Add Question
+                </button>
+                <a href="{% url 'quiz_detail' quiz.id %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

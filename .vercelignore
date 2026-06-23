@@ -1,0 +1,12 @@
+venv/
+.venv/
+node_modules/
+.git/
+.github/
+db.sqlite3
+staticfiles/
+media/
+scratch/
+func_lines.txt
+*.pyc
+__pycache__/

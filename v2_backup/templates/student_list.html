@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student List | Liquid_Tripple_R{% endblock %}
+
+{% block content %}
+{% block content %}
+<div class="admin-v2-container">
+    
+    <!-- Header V2 -->
+    <div class="admin-header-v2">
+        <h1 class="gradient-text">Class Directory 🎓</h1>
+        <p>A thriving community of <span id="student-count" style="font-weight: 800; color: var(--admin-primary);">{{ students|length }}</span> scholars at Liquid_Tripple_R.</p>
+    </div>
+
+    <!-- Search Section V2 -->
+    <div class="v2-glass-card" style="padding: 1.25rem 2rem; margin-bottom: 2.5rem; display: flex; align-items: center; gap: 1.5rem; border-radius: 1.5rem;">
+        <form method="GET" action="{% url 'student_list' %}" style="flex: 1; position: relative;" id="search-form">
+            <i class="fas fa-search" style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+            <input type="text" name="search" id="student-search-input" placeholder="Find students by name or unique ID..." value="{{ search_query }}" 
+                   autocomplete="off"
+                   style="width: 100%; padding: 0.85rem 1rem 0.85rem 3.25rem; border: 1px solid #f1f5f9; border-radius: 1rem; background: #f8fafc; font-size: 0.95rem; font-weight: 600; color: var(--text-primary); transition: all 0.3s;">
+        </form>
+        {% if search_query %}
+            <a href="{% url 'student_list' %}" class="tab-btn-v2" style="padding: 0.6rem 1.25rem; text-decoration: none; font-size: 0.8rem;">Reset Filters</a>
+        {% endif %}
+    </div>
+
+    <!-- Student Table V2 -->
+    <div class="card-v2" style="padding: 0; overflow: hidden;">
+        <div class="table-responsive-v2">
+            <table class="admin-table-v2">
+                <thead>
+                    <tr>
+                        <th class="mobile-hide" style="width: 70px; text-align: center;">SL</th>
+                        <th>Student Information</th>
+                        <th class="mobile-compact-hide" style="width: 140px; text-align: center;">Scholar ID</th>
+                        <th class="mobile-hide" style="width: 160px;">Registration Date</th>
+                        <th style="width: 140px; text-align: right;">Status</th>
+                        {% if user.is_staff %}
+                        <th style="width: 90px; text-align: center;">Actions</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody id="student-table-body">
+                    {% for profile in students %}
+                    <tr style="{% if user == profile.user %}background: rgba(79, 70, 229, 0.05); border-left: 4px solid var(--admin-primary);{% endif %}">
+                        <td class="mobile-hide" style="text-align: center;">
+                            <span class="v2-badge" style="background: {% if user == profile.user %}var(--admin-primary){% else %}#f1f5f9{% endif %}; color: {% if user == profile.user %}white{% else %}var(--text-secondary){% endif %}; font-family: monospace; width: 30px; height: 30px; justify-content: center; padding: 0;">
+                                {{ forloop.counter|stringformat:"02d" }}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div style="position: relative; flex-shrink: 0;">
+                                    {% if profile.profile_image %}
+                                        <img src="{{ profile.profile_image.url }}" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                    {% else %}
+                                        <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">
+                                            {{ profile.get_avatar_letter }}
+                                        </div>
+                                    {% endif %}
+                                    {% if profile.is_online %}
+                                        <span style="position: absolute; bottom: -3px; right: -3px; width: 14px; height: 14px; background: #22c55e; border: 3px solid white; border-radius: 50%;"></span>
+                                    {% endif %}
+                                </div>
+                                <div style="overflow: hidden;">
+                                    <div style="font-weight: 800; color: var(--text-primary); font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                                        {{ profile.user.get_full_name|default:profile.user.username }}
+                                        {% if user == profile.user %}
+                                            <span class="v2-badge badge-info-v2" style="font-size: 0.6rem; padding: 2px 6px;">YOU</span>
+                                        {% endif %}
+                                    </div>
+                                    <div style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 600;">
+                                        {% if user.is_staff or user == profile.user %}
+                                            {{ profile.user.email }}
+                                        {% else %}
+                                            {{ profile.get_masked_email }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="mobile-compact-hide" style="text-align: center;">
+                            <span style="font-family: monospace; font-weight: 800; color: var(--admin-primary); background: rgba(79, 70, 229, 0.05); padding: 4px 10px; border-radius: 6px;">
+                                #{{ profile.student_id|default:"-" }}
+                            </span>
+                        </td>
+                        <td class="mobile-hide">
+                            <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">{{ profile.created_at|date:"M d, Y" }}</div>
+                        </td>
+                        <td style="text-align: right;">
+                            {% if profile.is_online %}
+                                <div class="v2-badge badge-success-v2">
+                                    <span style="width: 6px; height: 6px; background: #22c55e; border-radius: 50%;"></span>
+                                    ACTIVE NOW
+                                </div>
+                            {% else %}
+                                <div class="v2-badge" style="background: #f8fafc; color: var(--text-secondary); border: 1px solid #e2e8f0;">
+                                    {% if profile.last_activity %}
+                                        {{ profile.last_activity|timesince }} AGO
+                                    {% else %}
+                                        OFFLINE
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </td>
+                        {% if user.is_staff %}
+                        <td style="text-align: center;">
+                            {% if user != profile.user %}
+                            <button class="tab-btn-v2" onclick="confirmDelete('{{ profile.user.id }}', '{{ profile.user.get_full_name|default:profile.user.username }}')" 
+                                    style="color: var(--admin-danger); background: rgba(239, 68, 68, 0.05); padding: 0.5rem; transition: all 0.2s;"
+                                    onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.05)'">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            {% else %}
+                            <span style="color: var(--text-secondary); font-size: 0.75rem; font-style: italic; font-weight: 600;">Account</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="padding: 6rem 2rem; text-align: center;">
+                            <div style="font-size: 4rem; opacity: 0.1; margin-bottom: 2rem;">👤</div>
+                            <h3 style="font-weight: 800; color: var(--text-primary);">No scholars found</h3>
+                            <p style="color: var(--text-secondary);">Refine your search parameters and try again.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        .mobile-hide { display: none !important; }
+    }
+</style>
+
+<script>
+    const searchInput = document.getElementById('student-search-input');
+    const tableBody = document.getElementById('student-table-body');
+    const studentCount = document.getElementById('student-count');
+    let timeout = null;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(timeout);
+        const query = this.value;
+
+        timeout = setTimeout(() => {
+            fetch(`{% url 'student_list' %}?search=${query}`)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const newTableBody = doc.getElementById('student-table-body');
+                    const newCount = doc.getElementById('student-count');
+                    
+                    if (newTableBody) {
+                        tableBody.style.opacity = '0.4';
+                        setTimeout(() => {
+                            tableBody.innerHTML = newTableBody.innerHTML;
+                            tableBody.style.opacity = '1';
+                        }, 100);
+                    }
+                    if (newCount) studentCount.innerHTML = newCount.innerHTML;
+                })
+                .catch(err => console.error('Search error:', err));
+        }, 300);
+    });
+
+    async function confirmDelete(userId, name) {
+        const confirmed = await window.customConfirm(
+            'Remove Student?', 
+            `Are you sure you want to remove ${name}? This action will permanently delete all associated data.`
+        );
+
+        if (confirmed) {
+            fetch(`/student/${userId}/delete/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) location.reload();
+                else alert('Error: ' + (data.error || 'Operation failed.'));
+            });
+        }
+    }
+</script>
+{% endblock %}pt>
+{% endblock %}

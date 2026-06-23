@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Assignments | Liquid_Triple_R{% endblock %}
+
+{% block content %}
+<div class="admin-v2-container">
+    
+    <!-- Header V2 -->
+    <div class="admin-header-v2">
+        <h1 class="gradient-text"><i class="fas fa-tasks"></i> Academic Assignments</h1>
+        <p>Stay ahead of your deadlines and monitor your task performance.</p>
+    </div>
+
+    <!-- Assignment Grid V2 -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem;">
+        {% for item in assignments %}
+        <div class="card-v2 slide-up" style="padding: 2rem; position: relative; overflow: hidden; animation-delay: {{ forloop.counter0|add:0.1 }}s;">
+            <!-- Status Badge V2 -->
+            <div style="position: absolute; top: 1.5rem; right: 1.5rem;">
+                {% if item.is_submitted %}
+                <span class="v2-badge badge-success-v2">
+                    <i class="fas fa-check-circle"></i> SUBMITTED
+                </span>
+                {% else %}
+                <span class="v2-badge badge-warning-v2">
+                    <i class="fas fa-clock"></i> PENDING
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Card Header V2 -->
+            <div style="margin-bottom: 1.5rem; padding-top: 1rem;">
+                <h3 style="font-weight: 800; color: var(--text-primary); font-size: 1.25rem; margin-bottom: 0.5rem;">{{ item.assignment.title }}</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6;">{{ item.assignment.description|truncatewords:15 }}</p>
+            </div>
+
+            <!-- Stats V2 -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                <div class="v2-glass-card" style="flex: 1; padding: 0.75rem; text-align: center; border-radius: 1rem;">
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--admin-primary);">{{ item.assignment.total_marks }}</div>
+                    <div style="font-size: 0.65rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Points</div>
+                </div>
+                <div class="v2-glass-card" style="flex: 1; padding: 0.75rem; text-align: center; border-radius: 1rem;">
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--admin-secondary);">{{ item.assignment.deadline|date:"M d" }}</div>
+                    <div style="font-size: 0.65rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Due Date</div>
+                </div>
+            </div>
+
+            <!-- Performance Indicator V2 -->
+            {% if item.submission and item.submission.is_graded %}
+            <div style="background: rgba(16, 185, 129, 0.05); border: 1px dashed rgba(16, 185, 129, 0.3); border-radius: 1rem; padding: 1rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fas fa-chart-line" style="color: #10b981;"></i>
+                <span style="font-weight: 800; color: #059669; font-size: 0.9rem;">Achieved: {{ item.submission.marks }} / {{ item.assignment.total_marks }}</span>
+            </div>
+            {% endif %}
+
+            <!-- Action Button V2 -->
+            <a href="{% url 'assignment_detail' item.assignment.id %}" class="tab-btn-v2 active" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 0.85rem;">
+                {% if item.is_submitted %}<i class="far fa-eye"></i> View Detail{% else %}<i class="fas fa-pencil-alt"></i> Complete Now{% endif %}
+            </a>
+        </div>
+        {% empty %}
+        <div class="card-v2 slide-up" style="padding: 5rem 2rem; text-align: center; grid-column: 1 / -1;">
+            <div style="font-size: 4rem; opacity: 0.1; margin-bottom: 1.5rem;"><i class="fas fa-tasks"></i></div>
+            <h3 style="font-weight: 800; color: var(--text-primary);">No assignments found</h3>
+            <p style="color: var(--text-secondary);">Your instructors haven't posted any assignments yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
