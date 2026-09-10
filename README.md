@@ -1,44 +1,127 @@
 # Liquid_Triple_R - Quiz Application 🎓
 
-এটি একটি আধুনিক কুইজ অ্যাপ্লিকেশন যা জিমেইল ওটিপি ভেরিফিকেশন, স্টুডেন্ট ড্যাশবোর্ড, এবং অ্যাডমিন কন্ট্রোল প্যানেল সাপোর্ট করে।
+A modern Quiz Application featuring **Gmail OTP verification, a Student Dashboard, and an Admin Control Panel**.
 
 ---
 
-## 🚀 কীভাবে রান করবেন (How to Run)
+## 🚀 How to Run
 
-### Windows ব্যবহারকারীদের জন্য (ডাবল-ক্লিক পদ্ধতি):
-১. প্রজেক্টের জিপ ফাইলটি আনজিপ করুন।
-২. ফোল্ডারের ভেতরে থাকা **`set.bat`** ফাইলটিতে ডাবল-ক্লিক করুন।
-৩. এটি স্বয়ংক্রিয়ভাবে ভার্চুয়াল এনভায়রনমেন্ট তৈরি করবে, প্রয়োজনীয় প্যাকেজ ইনস্টল করবে এবং লোকাল সার্ভার রান করবে।
-৪. সার্ভার রান হওয়ার পর ব্রাউজারে প্রবেশ করুন:
-   - **স্টুডেন্ট পোর্টাল:** http://127.0.0.1:8000
-   - **অ্যাডমিন লগইন:** http://127.0.0.1:8000/admin-login/
+### Windows Users (Double-Click Method)
 
-### Linux / Mac ব্যবহারকারীদের জন্য:
-১. টার্মিনাল ওপেন করে প্রজেক্ট ফোল্ডারে যান।
-২. নিচের কমান্ডগুলো চালান:
-   ```bash
-   chmod +x setup.sh
-   ./setup.sh
-   source venv/bin/activate
-   python manage.py runserver
-   ```
+1. Extract the project ZIP file.
+2. Open the project folder.
+3. Double-click the **`set.bat`** file.
+4. It will automatically:
+
+   * Create a virtual environment
+   * Install the required packages
+   * Start the local development server
+5. After the server starts, open your browser:
+
+   **Student Portal:**
+   http://127.0.0.1:8000
+
+   **Admin Login:**
+   http://127.0.0.1:8000/admin-login/
+
+### Linux / macOS Users
+
+1. Open a terminal and navigate to the project folder.
+2. Run the following commands:
+
+```bash
+chmod +x setup.sh
+./setup.sh
+source venv/bin/activate
+python manage.py runserver
+```
+
+Then open:
+
+**Student Portal:**
+http://127.0.0.1:8000
+
+**Admin Login:**
+http://127.0.0.1:8000/admin-login/
 
 ---
 
-## 🔑 ডিফল্ট অ্যাডমিন ক্রেডেনশিয়াল (Default Credentials)
+## 🔑 Admin Login Credentials
 
-অ্যাডমিন প্যানেলে লগইন করার জন্য নিচের তথ্যগুলো ব্যবহার করুন:
-- **ইউজারনেম (Username):** `admin_refat` অথবা `admin_ridoy` অথবা `admin_rafi`
-- **পাসওয়ার্ড (Password):** `730323`
+### ⚠️ Important Deployment Note
+
+In the deployed version, **Gmail OTP, SMS OTP, and date-related functionality are currently unavailable/not configured**.
+
+Therefore, to access the Admin Panel, please use the following credentials:
+
+* **Username:** `admin_ridoy`
+* **Password:** `730323`
+
+### Admin Login
+
+http://127.0.0.1:8000/admin-login/
+
+> **Note:** The above credentials are intended for testing/demo purposes in the deployed version.
 
 ---
 
-## 📦 কোড এবং ডেটাবেস জিপ করার নিয়ম (Sharing the Project)
-আপনি যদি অন্য কারো সাথে ডাটাবেসসহ সম্পূর্ণ প্রজেক্ট শেয়ার করতে চান:
-১. টার্মিনালে নিচের কমান্ডটি রান করুন:
-   ```bash
-   python make_zip.py
-   ```
-২. এটি স্বয়ংক্রিয়ভাবে `venv` (ভার্চুয়াল এনভায়রনমেন্ট) বাদ দিয়ে কিন্তু `db.sqlite3` (ডাটাবেস) সহ **`deploy_quiz.zip`** ফাইল তৈরি করবে। 
-৩. এই জিপ ফাইলটি সরাসরি শেয়ার করুন।
+## 📦 Sharing the Complete Project
+
+If you want to share the complete project **including the database**, follow these steps:
+
+1. Open a terminal in the project folder.
+2. Run:
+
+```bash
+python make_zip.py
+```
+
+3. The script will automatically create:
+
+```text
+deploy_quiz.zip
+```
+
+4. The ZIP file will include the project source code and **`db.sqlite3`** database while excluding the **`venv`** folder.
+
+5. You can directly share the generated `deploy_quiz.zip` file with others.
+
+---
+
+## 🗂️ Project Includes
+
+* 🎓 Student Dashboard
+* 📝 Quiz System
+* 🔐 Admin Control Panel
+* 📧 Gmail OTP Verification
+* 📱 SMS OTP Support
+* 🗄️ SQLite Database
+* 👨‍💻 Admin Management
+* 📊 Quiz & Student Management
+
+---
+
+## ⚠️ Deployment Limitations
+
+The deployed/demo version currently does not have the required configuration for:
+
+* Gmail OTP
+* SMS OTP
+* Date-based functionality
+
+Because of these limitations, **Admin Login should be accessed using the provided credentials**:
+
+```text
+Username: admin_ridoy
+Password: 730323
+```
+
+For full OTP functionality, the required Gmail/SMS API and deployment configuration must be properly configured.
+
+---
+
+## 👨‍💻 Project
+
+**Liquid_Triple_R - Quiz Application**
+
+A Django-based quiz platform designed to provide an interactive student quiz experience with administrative controls.
