@@ -19,16 +19,17 @@ def unread_notices_count(request):
         unread_ids = set(unread_notices.values_list('id', flat=True))
         
         if not request.user.is_staff:
-            # Student Logic: Published, not expired, and not attempted
+            # Student Logic: Published, active (not expired), and not attempted
             attempted_quiz_ids = StudentAttempt.objects.filter(student=request.user).values_list('quiz_id', flat=True)
             new_quizzes_count = Quiz.objects.filter(
-                is_published=True, 
-                expires_at__gt=timezone.now()
+                is_published=True
+            ).filter(
+                Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
             ).exclude(id__in=attempted_quiz_ids).count()
             
             submitted_assignment_ids = AssignmentSubmission.objects.filter(student=request.user).values_list('assignment_id', flat=True)
             new_assignments_count = Assignment.objects.filter(
-                deadline__gt=timezone.now()
+                Q(deadline__isnull=True) | Q(deadline__gt=timezone.now())
             ).exclude(id__in=submitted_assignment_ids).count()
         else:
             # Admin Logic: Unpublished quizzes and Ungraded submissions

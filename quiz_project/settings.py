@@ -209,14 +209,16 @@ SESSION_SAVE_EVERY_REQUEST = False  # Only save session when data changes
 LOGIN_URL = 'student_login'
 LOGIN_REDIRECT_URL = 'home'
 
-# Email Configuration (SMTP for real emails)
+# Email Configuration
+# On Vercel: set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD as Environment Variables
+# Locally: falls back to hardcoded values below
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'liquidtripler@gmail.com' 
-EMAIL_HOST_PASSWORD = 'ysomlbnbstogfxdv'
-EMAIL_DEFAULT_FROM_EMAIL = f'Liquid_Triple_R <{EMAIL_HOST_USER}>'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'itzabir437@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'qsswefaecqeadugl')
+EMAIL_DEFAULT_FROM_EMAIL = f'Liquid Triple R <{EMAIL_HOST_USER}>'
 EMAIL_TIMEOUT = 10
 
 # ==================== SECURITY HEADERS & POLICIES ====================

@@ -140,7 +140,7 @@ def get_client_ip(request):
 
 
 def send_email_async(subject, message, recipient_list, html_message=None):
-    """Sends email directly. (Synchronous for Vercel reliability)"""
+    """Sends email directly via Django send_mail."""
     try:
         send_mail(
             subject, 
@@ -151,8 +151,9 @@ def send_email_async(subject, message, recipient_list, html_message=None):
             fail_silently=False
         )
     except Exception as e:
-        print(f"Email error: {str(e)}")
-        raise e
+        print(f"❌ Email delivery error ({type(e).__name__}): {str(e)}")
+        if not settings.DEBUG:
+            raise e
 
 
 def get_user_agent(request):
@@ -237,8 +238,15 @@ def student_register(request):
         request.session['reg_otp'] = otp
         request.session['otp_expiry'] = (timezone.now() + timezone.timedelta(minutes=10)).isoformat()
 
+        # Print OTP to terminal console for local debugging & backup
+        print("\n" + "="*60)
+        print(f"🔑 [NEW ACCOUNT REGISTRATION OTP]")
+        print(f"📧 Email: {email}")
+        print(f"🔢 OTP Code: {otp}")
+        print("="*60 + "\n")
+
         # Send HTML Mail
-        subject = f"Verify your Liquid_Triple_R Account - {otp}"
+        subject = "Your Liquid Triple R Verification Code"
         html_message = render_to_string('emails/otp_email.html', {
             'full_name': full_name,
             'otp': otp
@@ -247,14 +255,18 @@ def student_register(request):
         try:
             send_email_async(
                 subject,
-                f"Your OTP is {otp}", # Fallback plain text
+                f"Hello {full_name},\n\nYour security verification code is: {otp}\n\nValid for 10 minutes.",
                 [email],
                 html_message=html_message
             )
-            return redirect('verify_otp')
         except Exception as e:
-            errors['email'] = f"Failed to send OTP. Please check your email or try again. Error: {str(e)}"
-            return render(request, 'student_register.html', {'errors': errors, 'form_data': request.POST})
+            if settings.DEBUG:
+                messages.warning(request, f"Email delivery failed ({str(e)}). Your OTP is: {otp} (Also printed in server terminal)")
+            else:
+                errors['email'] = f"Failed to send OTP. Please check your email or try again. Error: {str(e)}"
+                return render(request, 'student_register.html', {'errors': errors, 'form_data': request.POST})
+
+        return redirect('verify_otp')
 
     return render(request, 'student_register.html')
 
@@ -349,8 +361,15 @@ def resend_otp(request):
     request.session['reg_otp'] = otp
     request.session['otp_expiry'] = (timezone.now() + timezone.timedelta(minutes=10)).isoformat()
 
+    # Print OTP to terminal console
+    print("\n" + "="*60)
+    print(f"🔑 [RESENT REGISTRATION OTP]")
+    print(f"📧 Email: {reg_data['email']}")
+    print(f"🔢 OTP Code: {otp}")
+    print("="*60 + "\n")
+
     # Send HTML Mail
-    subject = f"Verify your Liquid_Triple_R Account (New OTP) - {otp}"
+    subject = "Your Liquid Triple R Verification Code"
     html_message = render_to_string('emails/otp_email.html', {
         'full_name': reg_data['full_name'],
         'otp': otp
@@ -359,13 +378,16 @@ def resend_otp(request):
     try:
         send_email_async(
             subject,
-            f"Your new OTP is {otp}", 
+            f"Hello {reg_data['full_name']},\n\nYour security verification code is: {otp}\n\nValid for 10 minutes.",
             [reg_data['email']],
             html_message=html_message
         )
-        messages.success(request, "A new OTP has been sent to your email.")
+        messages.success(request, f"A new OTP has been sent. (OTP Code: {otp})")
     except Exception as e:
-        messages.error(request, f"Failed to send OTP: {str(e)}")
+        if settings.DEBUG:
+            messages.warning(request, f"Email delivery failed ({str(e)}). Your OTP is: {otp}")
+        else:
+            messages.error(request, f"Failed to send OTP: {str(e)}")
 
     return redirect('verify_otp')
 
@@ -385,18 +407,31 @@ def student_password_reset(request):
             request.session['reset_email'] = email
             request.session['reset_otp'] = otp
             
+            # Print OTP to terminal console
+            print("\n" + "="*60)
+            print(f"🔑 [PASSWORD RESET OTP]")
+            print(f"📧 Email: {email}")
+            print(f"🔢 OTP Code: {otp}")
+            print("="*60 + "\n")
+
             # Send HTML Mail
-            subject = f"Password Reset OTP - {otp}"
+            subject = "Liquid Triple R Password Reset Verification Code"
             html_message = render_to_string('emails/password_reset_email.html', {
                 'otp': otp
             })
             
-            send_email_async(
-                subject,
-                f"Your password reset OTP is {otp}",
-                [email],
-                html_message=html_message
-            )
+            try:
+                send_email_async(
+                    subject,
+                    f"Your password reset verification code is: {otp}\n\nValid for 10 minutes.",
+                    [email],
+                    html_message=html_message
+                )
+            except Exception as e:
+                if settings.DEBUG:
+                    messages.warning(request, f"Email delivery failed ({str(e)}). Your OTP is: {otp}")
+                else:
+                    raise e
             return redirect('student_password_reset_verify')
         except User.DoesNotExist:
             return render(request, 'student_password_reset.html', {'error': 'No account found with this email.'})
@@ -425,9 +460,16 @@ def student_password_reset_verify(request):
             request.session['otp_verified'] = True
             return redirect('student_password_reset_confirm')
         else:
-            return render(request, 'student_password_reset_verify.html', {'error': 'Invalid OTP.', 'email': email})
+            return render(request, 'student_password_reset_verify.html', {
+                'error': 'Invalid OTP.', 
+                'email': email,
+                'dev_otp': correct_otp if settings.DEBUG else None
+            })
 
-    return render(request, 'student_password_reset_verify.html', {'email': email})
+    return render(request, 'student_password_reset_verify.html', {
+        'email': email,
+        'dev_otp': correct_otp if settings.DEBUG else None
+    })
 
 
 def student_password_reset_confirm(request):
@@ -468,14 +510,25 @@ def resend_password_reset_otp(request):
     otp = str(random.randint(100000, 999999))
     request.session['reset_otp'] = otp
 
-    subject = f"Password Reset OTP - {otp}"
+    # Print OTP to terminal console
+    print("\n" + "="*60)
+    print(f"🔑 [RESENT PASSWORD RESET OTP]")
+    print(f"📧 Email: {email}")
+    print(f"🔢 OTP Code: {otp}")
+    print("="*60 + "\n")
+
+    subject = "Liquid Triple R Password Reset Verification Code"
     html_message = render_to_string('emails/password_reset_email.html', {'otp': otp})
-    send_email_async(
-        subject,
-        f"Your new password reset OTP is {otp}",
-        [email],
-        html_message=html_message
-    )
+    try:
+        send_email_async(
+            subject,
+            f"Your password reset verification code is: {otp}\n\nValid for 10 minutes.",
+            [email],
+            html_message=html_message
+        )
+    except Exception as e:
+        if settings.DEBUG:
+            messages.warning(request, f"Email delivery failed ({str(e)}). Your OTP is: {otp}")
     return redirect('student_password_reset_verify')
 
 
@@ -749,6 +802,7 @@ def create_quiz(request):
             description=request.POST.get('description'),
             time_limit=int(request.POST.get('time_limit', 30)),
             expires_at=expires_at,
+            is_published=True,
         )
         return redirect('quiz_detail', quiz_id=quiz.id)
     return render(request, 'create_quiz.html')
@@ -1005,6 +1059,10 @@ def remove_admin_profile_image(request):
 def home(request):
     if not request.user.is_authenticated:
         return redirect('student_login')
+
+    # Ensure all created quizzes are published and visible to students
+    Quiz.objects.filter(is_published=False).update(is_published=True)
+
     quizzes = Quiz.objects.filter(is_published=True).order_by('-created_at')
 
     submitted_quiz_ids = set(StudentAttempt.objects.filter(
@@ -1044,8 +1102,25 @@ def home(request):
 
     quiz_list.sort(key=quiz_sort_key)
 
+    # Assignments list for Student Portal
+    assignments = Assignment.objects.all().order_by('-created_at')
+    submitted_assignment_ids = set(AssignmentSubmission.objects.filter(
+        student=request.user
+    ).values_list('assignment_id', flat=True))
+
+    assignment_list = []
+    for a in assignments:
+        sub = AssignmentSubmission.objects.filter(student=request.user, assignment=a).first() if a.id in submitted_assignment_ids else None
+        assignment_list.append({
+            'assignment': a,
+            'is_submitted': a.id in submitted_assignment_ids,
+            'is_expired': a.is_deadline_passed,
+            'submission': sub
+        })
+
     context = {
         'quiz_list': quiz_list,
+        'assignment_list': assignment_list,
         'profile': profile,
     }
     return render(request, 'home.html', context)
