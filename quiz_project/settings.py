@@ -16,9 +16,8 @@ DEBUG = not os.environ.get('VERCEL')
 ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://liquidtripler.vercel.app',
+    'https://online-course-website-omega.vercel.app',
     'https://*.vercel.app',
-    'https://liquidtripler.pythonanywhere.com',
     'http://127.0.0.1',
     'http://localhost'
 ]
@@ -29,7 +28,7 @@ if os.environ.get('VERCEL') or not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_HTTPONLY = True
     SESSION_COOKIE_HTTPONLY = True
-    CSRF_TRUSTED_ORIGINS += ['https://liquidtripler.vercel.app']
+    CSRF_TRUSTED_ORIGINS += ['https://online-course-website-omega.vercel.app']
     CSRF_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SAMESITE = 'Lax'
     # Added for Vercel/Proxy support
